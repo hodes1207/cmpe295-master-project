@@ -1,0 +1,22 @@
+!SESSION 2012-12-27 14:04:41.078 -----------------------------------------------
+eclipse.buildId=M20120914-1800
+java.version=1.7.0_10
+java.vendor=Oracle Corporation
+BootLoader constants: OS=win32, ARCH=x86, WS=win32, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os win32 -ws win32 -arch x86 -product org.eclipse.epp.package.jee.product
+
+!ENTRY org.eclipse.jdt.launching 4 108 2012-12-27 14:31:56.898
+!MESSAGE Working directory does not exist: ../bin
+
+!ENTRY org.eclipse.core.resources 4 368 2012-12-27 14:35:22.150
+!MESSAGE Variable references non-existent resource : ${workspace_loc:CoreAlgorithm/../bin}
+
+!ENTRY org.eclipse.core.resources 4 368 2012-12-27 14:36:52.552
+!MESSAGE Variable references non-existent resource : ${workspace_loc:CoreAlgorithm/../../bin}
+
+!ENTRY org.eclipse.jdt.launching 4 108 2012-12-27 14:38:58.663
+!MESSAGE Working directory does not exist: C:/Users/yhx176781066/Desktop/Master Project/cmpe295-master-project/CoreAlgorithm/bin
+
+!ENTRY org.eclipse.jdt.launching 4 108 2012-12-27 14:43:38.358
+!MESSAGE Working directory does not exist: C:/Users/yhx176781066/Desktop/Master Project/cmpe295-master-project/CoreAlgorithm/CoreAlgorithm../bin

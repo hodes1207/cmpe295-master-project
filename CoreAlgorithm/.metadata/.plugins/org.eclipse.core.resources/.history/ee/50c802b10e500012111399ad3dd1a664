@@ -1,7 +1,0 @@
-
-public class ImgFeatureExtractionWrapper {
-	public final int GLCM_DIM = 16;
-	#define EOHDIM = 37;
-	#define LBP_DIM = 256;
-	#define TOTAL_DIM = (5*EOHDIM + 5*GLCM_DIM +LBP_DIM);
-}

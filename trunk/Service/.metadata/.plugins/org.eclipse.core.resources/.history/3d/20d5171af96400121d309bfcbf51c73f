@@ -1,0 +1,11 @@
+package database;
+
+public class ModelParameter {
+
+	public boolean bRBF = false;;
+	public double dbRBF_c = 0.0315;
+	public double dbRBF_g = 0.001;
+	public double dbLinear_c;
+	public int nMaxSampleNum;
+	
+}

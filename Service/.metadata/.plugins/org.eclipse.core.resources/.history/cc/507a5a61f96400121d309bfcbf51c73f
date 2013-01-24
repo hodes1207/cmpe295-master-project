@@ -1,0 +1,32 @@
+package database;
+
+import java.util.ArrayList;
+
+public class databaseAPI {
+
+	static public int GetDomainImgNum(int nDomainId);
+
+	static public int GetClassImgNum(int nClassId);
+
+	static public boolean AddImage(MedicalImage image);
+
+	ArrayList<MedicalImage> RetrieveImageList
+	(int domainId, int classId, boolean bImgContent);
+
+	ArrayList<Long> GetImageId(int scopeId, int classId);
+
+	MedicalImage RetrieveImage(long imageId);
+
+	Boolean DeleteImage(long imageId);
+
+	ArrayList<Integer> getDomain();
+
+	ArrayList<SecondLevelClass> getClass(int nDomainId);
+
+	ModelParameter getModelParameter(int nScope);
+
+	Boolean setModelParameter(ModelParameter mParameter);
+
+	ArrayList<MedicalImage> similaritySearch(byte[] image, int nScope);
+	
+}

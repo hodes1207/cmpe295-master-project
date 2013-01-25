@@ -2,7 +2,7 @@ package ServiceInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import imgproc.ImgFeatureExtractionWrapper;
 import datamining.CLASSIFY_ENTITY;
 import datamining.ClassifyModel;
 import database.*;
@@ -14,73 +14,141 @@ public class EngineService
 	
 	boolean Initialized()  { return m_bInited; }
 
-	public ArrayList<Long> GetPicId(int nClass)
+	public ArrayList<Long> GetPicId(int nDomainId, int nClassId)
 	{
-		return null;
+		ArrayList<Long> res = databaseAPI.GetImageId(nDomainId, nClassId);
+		return res;
 	}
 
-	public byte[] RetrieveImg(long nId) 
+	public byte[] RetrieveImg(long nImgId) 
 	{
-		return null;
+		MedicalImage img = databaseAPI.RetrieveImage(nImgId);
+		return img.image;
 	}
 
-	public boolean DeleteImg(long nId) 
+	public boolean DeleteImg(int nDomainId, int nClassId, long nImgId) 
 	{
-		return false;
+		boolean res = databaseAPI.DeleteImage(nImgId);
+		
+		if (res)
+		{
+			for (int i = 0; i < m_imgs.get(nDomainId).size(); i++)
+			{
+				if (m_imgs.get(nDomainId).get(i).imageId == nImgId)
+				{
+					m_imgs.get(nDomainId).remove(i);
+					break;
+				}
+			}
+		}
+			
+		return res;
 	}
 
-	public boolean AddImg(int nClass, byte[] byteImg)
+	public boolean AddImg(int nDomainId, int nClassId, long nImgId, byte[] byteImg)
 	{
-		return false;
+		MedicalImage img = new MedicalImage();
+		img.domainId = nDomainId;
+		img.classId = nClassId;
+		img.imageId = nImgId;
+		img.image = byteImg;
+		img.featureV = new ArrayList<Double>();
+		
+		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+		ImgFeatureExtractionWrapper.extractFeature(byteImg, vectors);
+		for (int i = 0; i < vectors.length; i++)
+			img.featureV.add(vectors[i]);
+		
+		boolean bSuc = databaseAPI.AddImage(img);
+		if (bSuc)
+			m_imgs.get(img.domainId).add(img);
+		
+		return bSuc;
 	}
 
 	//scope: first level classification
-	public ArrayList<Integer> GetDomainIds()
+	public ArrayList<Domain> GetDomain()
 	{
-		return null;
+		ArrayList<Domain> res = databaseAPI.getDomain();
+		
+		return res;
 	}
 
 	//second level classification
-	public ArrayList<Integer> GetClass(int nDomianId)
+	public ArrayList<SecondLevelClass> GetClasses(int nDomianId)
 	{
-		return null;
+		ArrayList<SecondLevelClass> res = databaseAPI.getClass(nDomianId);
+		
+		return res;
 	}
 
 	//================== Model tuning API ================================
 
-	public void SetRBFKernelParam(int nScope, double c, double g)
+	public void SetRBFKernelParam(int nDomainId, double c, double g, int nMaxSamples)
 	{
+		ModelParameter param = new ModelParameter();
+		param.bRBF = true;
+		param.dbRBF_c = c;
+		param.dbRBF_g = g;
+		param.nMaxSampleNum = nMaxSamples;
 		
+		databaseAPI.setModelParameter(nDomainId, param);
 	}
 
-	public void SetLinearKernelParam(int nScope, double c)
+	public void SetLinearKernelParam(int nDomainId, double c, int nMaxSamples)
 	{
+		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		if (param == null)
+			param = new ModelParameter();
 		
+		param.bRBF = false;
+		param.dbLinear_c = c;
+		param.nMaxSampleNum = nMaxSamples;
+		
+		databaseAPI.setModelParameter(nDomainId, param);
 	}
 
 	public int GetAutoTuningFoldNum(int nDomainId)
 	{
-		return 0;
+		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		
+		return null == param ? 0 : param.nFold;
 	}
 
 	public void SetAutoTuningFoldNum(int nDomainId, int nFold)
 	{
+		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		if (param == null)
+			param = new ModelParameter();
+		
+		param.nFold = nFold;
+		
+		databaseAPI.setModelParameter(nDomainId, param);
+	}
+
+	void stopTraining(int nDomainId)
+	{
 		
 	}
-
-	/*int GetTimeLimite(int nDomainId)
+	
+	void stopTuning(int nDomainId)
 	{
-		return 0;
+		
 	}
-
-	boolean StopAutoTuning(int nDomainId)
-	{
-		return false;
-	}*/
 
 	public boolean StartAutoTuning(int nDomainId)
 	{
 		return false;
+	}
+	
+	double getAutoTuningProgress(int nDomainId)
+	{
+		return 0.0;
+	}
+	
+	String getAutoTuningInfo()
+	{
+		return "";
 	}
 
 	// during auto tuning process
@@ -95,7 +163,7 @@ public class EngineService
 		return null;
 	}
 
-	//============ Recommendation API ====================================
+	//================== Recommendation API ====================================
 	//return a list of picture ID
 	public ArrayList<Long> SimilaritySearch(byte[] img, int nDomainId)
 	{
@@ -108,16 +176,16 @@ public class EngineService
 		return null;
 	}
 	
-	//================== Initialization ====================================
+	//======================= Initialization ====================================
 	public boolean StartService()
 	{
 		ArrayList<CLASSIFY_ENTITY> allImgs = new ArrayList<CLASSIFY_ENTITY>();
 		
 		//build individual model
-		ArrayList<Integer> domains = databaseAPI.getDomain();
+		ArrayList<Domain> domains = databaseAPI.getDomain();
 		for (int i = 0; i < domains.size(); i++)
 		{
-			int nDomainId = domains.get(i);
+			int nDomainId = domains.get(i).domainId;
 			
 			ModelParameter param = databaseAPI.getModelParameter(nDomainId);
 			if (param == null)
@@ -127,7 +195,9 @@ public class EngineService
 			if (null == imgs)
 				continue;
 			
-			m_domainModels.put(nDomainId, new ClassifyModel());
+			m_modelMgr.addDomain(nDomainId);
+			m_imgs.put(nDomainId, new ArrayList<MedicalImage>());
+			
 			ArrayList<CLASSIFY_ENTITY> clsEnt = new ArrayList<CLASSIFY_ENTITY>();
 			for (int j = 0; j < imgs.size(); j++)
 			{
@@ -136,36 +206,42 @@ public class EngineService
 				e.vectors = imgs.get(j).featureV;
 				allImgs.add(e);
 				clsEnt.add(e);
+				
+				m_imgs.get(nDomainId).add(imgs.get(j));
 			}
 			
 			//set model parameters
-			if (param.bRBF)
-			{
-				m_domainModels.get(nDomainId).useRBF();
-				m_domainModels.get(nDomainId).setRBFInfo(param.dbRBF_c, param.dbRBF_g);
-			}
-			else 
-			{
-				m_domainModels.get(nDomainId).useLinear();
-				m_domainModels.get(nDomainId).setLinearInfo(param.dbRBF_c);
-			}
+			m_modelMgr.setModelParameter(nDomainId, param.bRBF, param.dbRBF_c, 
+					param.dbRBF_g, param.dbLinear_c);
 			
-			m_domainModels.get(nDomainId).BuildModel(clsEnt);
+			m_modelMgr.BuildModel(nDomainId, clsEnt);
 			clsEnt = null;
 		}
 		
 		//build the whole model
-		m_wholeModel = new ClassifyModel(); 
-		m_wholeModel.BuildModel(allImgs);
+		ModelParameter param = databaseAPI.getModelParameter(ModelManager.WHOLE_DOMAIN_ID);
+		if (param == null)
+		{
+			m_bInited = false;
+			return false;
+		}
 		
+		m_modelMgr.setModelParameter(ModelManager.WHOLE_DOMAIN_ID, param.bRBF, param.dbRBF_c, 
+				param.dbRBF_g, param.dbLinear_c);
+		
+		m_modelMgr.BuildModel(ModelManager.WHOLE_DOMAIN_ID, allImgs);
 		m_bInited = true;
 		
 		return m_bInited;
 	}
 	
 	//================== Member variables ==================================
-	private HashMap<Integer, ClassifyModel> m_domainModels = new HashMap<Integer, ClassifyModel>();
-	private ClassifyModel m_wholeModel = null;
+	
+	//image content is not preserved (MedicalImage.image == null)
+	private HashMap<Integer, ArrayList<MedicalImage>> m_imgs = 
+			new HashMap<Integer, ArrayList<MedicalImage>>();
+	
 	private boolean m_bInited = false;
-	private int m_nWholeDomainId = 0;
+	
+	private ModelManager m_modelMgr = new ModelManager();
 }

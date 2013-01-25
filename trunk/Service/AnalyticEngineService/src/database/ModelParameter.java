@@ -7,5 +7,6 @@ public class ModelParameter {
 	public double dbRBF_g = 0.001;
 	public double dbLinear_c = 0.315;
 	public int nMaxSampleNum = 1000;
+	public int nFold = 5;
 	
 }

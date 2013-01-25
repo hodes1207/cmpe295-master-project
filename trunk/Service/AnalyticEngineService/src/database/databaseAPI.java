@@ -4,16 +4,6 @@ import java.util.ArrayList;
 
 public class databaseAPI {
 
-	static public int GetDomainImgNum(int nDomainId)
-	{
-		return -1;
-	}
-
-	static public int GetClassImgNum(int nClassId)
-	{
-		return -1;
-	}
-
 	static public boolean AddImage(MedicalImage image)
 	{
 		return false;
@@ -40,7 +30,7 @@ public class databaseAPI {
 		return false;
 	}
 
-	static public ArrayList<Integer> getDomain()
+	static public ArrayList<Domain> getDomain()
 	{
 		return null;
 	}
@@ -55,7 +45,7 @@ public class databaseAPI {
 		return null;
 	}
 
-	static public void setModelParameter(int nDomainId, ModelParameter mParameter)
+	static public void setModelParameter(int nDomainId, ModelParameter param)
 	{
 		
 	}

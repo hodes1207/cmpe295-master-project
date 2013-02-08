@@ -1,8 +1,0 @@
-package database;
-
-public class SecondLevelClass {
-
-	public String className;
-	public int classId;
-	
-}

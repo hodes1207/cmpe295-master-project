@@ -1,9 +1,0 @@
-package database;
-
-public class Domain {
-
-	public String domainName;
-	public int domainId;
-	public int updateNum;
-	
-}

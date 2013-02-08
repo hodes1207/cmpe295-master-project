@@ -2,6 +2,17 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="CoreAlgorithm.jar"/>
+	<classpathentry kind="lib" path="commons-codec-1.4.jar"/>
+	<classpathentry kind="lib" path="commons-io-2.0.1.jar"/>
+	<classpathentry kind="lib" path="commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="httpclient-4.1.1.jar"/>
+	<classpathentry kind="lib" path="httpclient-cache-4.1.1.jar"/>
+	<classpathentry kind="lib" path="httpcore-4.1.jar"/>
+	<classpathentry kind="lib" path="jackson-core-asl-1.8.6.jar"/>
+	<classpathentry kind="lib" path="jackson-mapper-asl-1.8.6.jar"/>
+	<classpathentry kind="lib" path="javastat.jar"/>
+	<classpathentry kind="lib" path="org.ektorp-1.2.2.jar"/>
+	<classpathentry kind="lib" path="slf4j-api-1.6.1.jar"/>
+	<classpathentry kind="lib" path="slf4j-simple-1.6.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

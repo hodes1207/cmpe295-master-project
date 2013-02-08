@@ -1,18 +1,21 @@
 package ServiceInterface;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+
 import imgproc.ImgFeatureExtractionWrapper;
 import datamining.CLASSIFY_ENTITY;
-import datamining.ClassifyModel;
+import datamining.PROB_ESTIMATION_RES;
+import datamining.SemanticMerge;
 import database.*;
 
 public class EngineService 
 {
 
+	/*******************  Service API group ***********************************/
 	//=================== Image management API =========================
-	
-	boolean Initialized()  { return m_bInited; }
 
 	public ArrayList<Long> GetPicId(int nDomainId, int nClassId)
 	{
@@ -59,9 +62,19 @@ public class EngineService
 		for (int i = 0; i < vectors.length; i++)
 			img.featureV.add(vectors[i]);
 		
+		//the feature vector stored in the database is not normalized
 		boolean bSuc = databaseAPI.AddImage(img);
+		
 		if (bSuc)
-			m_imgs.get(img.domainId).add(img);
+		{
+			synchronized(this)
+			{
+				m_imgs.get(img.domainId).add(img);
+			}
+			
+			//the feature vector in memory is normalized
+			m_nlzr.normalizeVector(img.featureV);
+		}
 		
 		return bSuc;
 	}
@@ -84,164 +97,343 @@ public class EngineService
 
 	//================== Model tuning API ================================
 
-	public void SetRBFKernelParam(int nDomainId, double c, double g, int nMaxSamples)
+	public boolean SetRBFKernelParam(int nDomainId, double c, double g, int nMaxSamples)
 	{
-		ModelParameter param = new ModelParameter();
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		if (null == param)
+			return false;
+		
 		param.bRBF = true;
 		param.dbRBF_c = c;
 		param.dbRBF_g = g;
 		param.nMaxSampleNum = nMaxSamples;
 		
 		databaseAPI.setModelParameter(nDomainId, param);
+		return true;
 	}
 
-	public void SetLinearKernelParam(int nDomainId, double c, int nMaxSamples)
+	public boolean SetLinearKernelParam(int nDomainId, double c, int nMaxSamples)
 	{
-		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
 		if (param == null)
-			param = new ModelParameter();
+			return false;
 		
 		param.bRBF = false;
 		param.dbLinear_c = c;
 		param.nMaxSampleNum = nMaxSamples;
 		
 		databaseAPI.setModelParameter(nDomainId, param);
+		
+		return true;
 	}
 
 	public int GetAutoTuningFoldNum(int nDomainId)
 	{
-		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
 		
 		return null == param ? 0 : param.nFold;
 	}
 
-	public void SetAutoTuningFoldNum(int nDomainId, int nFold)
+	public boolean SetAutoTuningFoldNum(int nDomainId, int nFold)
 	{
-		ModelParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
 		if (param == null)
-			param = new ModelParameter();
+			return false;
 		
 		param.nFold = nFold;
 		
 		databaseAPI.setModelParameter(nDomainId, param);
+		return true;
 	}
 
-	void stopTraining(int nDomainId)
-	{
-		
-	}
-	
-	void stopTuning(int nDomainId)
-	{
-		
-	}
+	/*void stopTraining(int nDomainId)
+	void stopTuning(int nDomainId)*/
 
 	public boolean StartAutoTuning(int nDomainId)
 	{
-		return false;
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		if (null == param || !m_imgs.containsKey(nDomainId))
+			return false;
+		
+		ArrayList<MedicalImage> imgSample = new ArrayList<MedicalImage>();
+		synchronized(this)
+		{
+			ArrayList<MedicalImage> imgRef = m_imgs.get(nDomainId);
+			java.util.Random ran = new java.util.Random();
+			
+			for (int i = 1; i <= imgRef.size(); i++)
+			{
+				if (imgSample.size() < param.nMaxSampleNum)
+					imgSample.add(imgRef.get(i-1));
+				else
+				{
+					boolean bSelect = (ran.nextInt()%i < (imgSample.size()-1)); 
+	
+					if (bSelect)
+					{
+						int nIndexSwap = ran.nextInt()%imgSample.size();
+						imgSample.set(nIndexSwap, imgRef.get(i-1));
+					}
+				}
+			}
+		}
+		
+		ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
+		ArrayList<datamining.CLASSIFY_ENTITY> testDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
+		for (int i = 0; i < imgSample.size(); i++)
+		{
+			datamining.CLASSIFY_ENTITY ent = new datamining.CLASSIFY_ENTITY();
+			ent.nClsId = imgSample.get(i).classId;
+			ent.vectors = imgSample.get(i).featureV;
+			
+			if (i < imgSample.size()/param.nFold)
+				testDataSet.add(ent);
+			else
+				buildDataSet.add(ent);
+		}
+		
+		m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet);
+		
+		return true;
 	}
 	
-	double getAutoTuningProgress(int nDomainId)
+	public boolean startTraining(int nDomainId)
 	{
-		return 0.0;
+		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		if (null == param || !m_imgs.containsKey(nDomainId))
+			return false;
+		
+		ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = 
+				new ArrayList<datamining.CLASSIFY_ENTITY>();
+		synchronized(this)
+		{
+			ArrayList<MedicalImage> imgRef = m_imgs.get(nDomainId);
+			
+			for (int i = 0; i < imgRef.size(); i++)
+			{
+				datamining.CLASSIFY_ENTITY ent = new datamining.CLASSIFY_ENTITY();
+				ent.nClsId = imgRef.get(i).classId;
+				ent.vectors = imgRef.get(i).featureV;
+				buildDataSet.add(ent);
+			}
+		}
+		
+		//transition between to type of parameters
+		datamining.ModelParameter paramNew = new datamining.ModelParameter();
+		paramNew.bRBFKernel = param.bRBF;
+		paramNew.dbLinear_C = param.dbLinear_c;
+		paramNew.dbRBF_C = param.dbRBF_c;
+		paramNew.dbRBF_G = param.dbRBF_g;
+		
+		m_modelMgr.requestTraining(nDomainId, paramNew, buildDataSet);
+		
+		return true;
 	}
 	
-	String getAutoTuningInfo()
+	public double getAutoTuningProgress(int nDomainId)
 	{
-		return "";
+		return m_modelMgr.getTuningProgress(nDomainId);
 	}
-
-	// during auto tuning process
-	public ArrayList<String>GetAutoTunningInfo(int nDomainId)
+	
+	public String getAutoTuningInfo(int nDomainId)
 	{
-		return null;
+		return m_modelMgr.getTuningInfo(nDomainId);
 	}
 
 	//not in the auto tuning process
-	public ArrayList<String> GetCurrentModelInfo(int nDomainId)
+	public String GetCurrentModelInfo(int nDomainId)
 	{
-		return null;
+		return m_modelMgr.getModelInfo(nDomainId);
 	}
 
 	//================== Recommendation API ====================================
-	//return a list of picture ID
-	public ArrayList<Long> SimilaritySearch(byte[] img, int nDomainId)
+	//return a list of picture ID (nNum pictures)
+	public ArrayList<Long> SimilaritySearch(byte[] byteImg, int nNum)
 	{
-		return null;
+		//get normalized vector
+		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+		ImgFeatureExtractionWrapper.extractFeature(byteImg, vectors);
+		
+		ArrayList<Double> featureV = new ArrayList<Double>();
+		for (int i = 0; i < vectors.length; i++)
+			featureV.add(vectors[i]);
+		
+		m_nlzr.normalizeVector(featureV);
+		
+		//get all image features
+		ArrayList<MedicalImage> allImgs = new ArrayList<MedicalImage>();
+		
+		synchronized(this)
+		{
+			Iterator<Integer> iterator = m_imgs.keySet().iterator();
+			while (iterator.hasNext()) 
+			{
+				int nId = (int)iterator.next();
+				ArrayList<MedicalImage> lst = m_imgs.get(nId);
+				allImgs.addAll(lst);
+			}
+		}
+		
+		//Append semantic vector to input image
+		PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, ModelManager.WHOLE_DOMAIN_ID);
+		SemanticMerge sm = new SemanticMerge(ImgFeatureExtractionWrapper.TOTAL_DIM, m_nTotalClasses);
+		sm.merge(featureV, res);
+				
+		for (int i = 0; i < allImgs.size(); i++)
+		{
+			synchronized(this)
+			{
+				if (!m_clsIndexMap.containsKey(allImgs.get(i).classId))
+					continue;
+				
+				sm.merge(allImgs.get(i).featureV, m_clsIndexMap.get(allImgs.get(i).classId));
+			}
+		}
+		
+		ImgFeatureComparator comp = new ImgFeatureComparator(featureV);
+		Collections.sort(allImgs, comp);
+		
+		int nRetNum = allImgs.size();
+		if (nNum > 0 && nNum < allImgs.size())
+			nRetNum = nNum;
+		
+		ArrayList<Long> retList = new ArrayList<Long>();
+		for (int i = 0; i < nRetNum; i++)
+			retList.add(allImgs.get(i).imageId);
+		
+		return retList;
 	}
 
 	//String format:  classID+¡±:¡±+classification percentage, ranked by percentage
-	public ArrayList<String> ClassificationEstimation(byte[] img, int nDomainId)
+	public String classificationEstimation(byte[] img, int nDomainId)
 	{
-		return null;
+		//get normalized vector
+		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+		ImgFeatureExtractionWrapper.extractFeature(img, vectors);
+				
+		ArrayList<Double> featureV = new ArrayList<Double>();
+		for (int i = 0; i < vectors.length; i++)
+			featureV.add(vectors[i]);
+				
+		m_nlzr.normalizeVector(featureV);
+		
+		PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, nDomainId);
+		if (null == res)		
+			return null;
+		
+		String strRet = "Class probability estimation:  \n";
+		for (int i = 0; i < res.probRes.size(); i++)
+		{
+			int nClsId = res.probRes.get(i).nClsId;
+			if (!m_clsNameMap.containsKey(nClsId))
+				continue;
+			
+			String strClsName = m_clsNameMap.get(nClsId);
+			strRet += strClsName;
+			strRet += " ====================> ";
+			strRet += Double.toString(res.probRes.get(i).dbProb*100);
+			strRet += "% \n";
+		}
+		
+		return strRet;
 	}
 	
-	//======================= Initialization ====================================
-	public boolean StartService()
+	//================== Initialize status API =================================
+	public double getInitProgress()
 	{
-		ArrayList<CLASSIFY_ENTITY> allImgs = new ArrayList<CLASSIFY_ENTITY>();
-		
-		//build individual model
-		ArrayList<Domain> domains = databaseAPI.getDomain();
-		for (int i = 0; i < domains.size(); i++)
-		{
-			int nDomainId = domains.get(i).domainId;
-			
-			ModelParameter param = databaseAPI.getModelParameter(nDomainId);
-			if (param == null)
-				continue;
-			
-			ArrayList<MedicalImage> imgs = databaseAPI.RetrieveImageList(nDomainId, -1, false);
-			if (null == imgs)
-				continue;
-			
-			m_modelMgr.addDomain(nDomainId);
+		return m_dbInitProgress;
+	}
+	/************************************************************************************/
+	
+	
+	
+	/************************  miscellaneous functions **********************************/
+	public void setInitialProgress(double dbProg) 
+	{ 
+		m_dbInitProgress = dbProg; 
+	}
+	
+	public void addDomain(int nDomainId)
+	{
+		m_modelMgr.addDomain(nDomainId);
+	}
+	
+	public void addImage(int nDomainId, MedicalImage img)
+	{
+		if (!m_imgs.containsKey(nDomainId))
 			m_imgs.put(nDomainId, new ArrayList<MedicalImage>());
-			
-			ArrayList<CLASSIFY_ENTITY> clsEnt = new ArrayList<CLASSIFY_ENTITY>();
-			for (int j = 0; j < imgs.size(); j++)
+		
+		m_imgs.get(nDomainId).add(img);
+	}
+	
+	public boolean setModelParameter(int nDomainId, boolean bRBF, double rbfc, double rbfg, double linearc)
+	{
+		return m_modelMgr.setModelParameter(nDomainId, bRBF, rbfc, rbfg, linearc);
+	}
+	
+	public boolean initialBuildModel(int nDomainId, ArrayList<CLASSIFY_ENTITY> dataset)
+	{
+		return m_modelMgr.initialBuildModel(nDomainId, dataset);
+	}
+	
+	public void startService()
+	{
+		ServiceInitThrd initThrd = new ServiceInitThrd(this);
+		initThrd.start();
+	}
+	
+	public void appendClass(int nClsId, int nIndex, String strClsName)
+	{
+		synchronized(this)
+		{
+			m_nTotalClasses++;
+			m_clsIndexMap.put(nClsId, nIndex);
+			m_clsNameMap.put(nClsId, strClsName);
+		}
+	}
+	
+	public void reNormalize()
+	{
+		synchronized(this)
+		{
+			Iterator<Integer> iterator = m_imgs.keySet().iterator();
+			while (iterator.hasNext()) 
 			{
-				CLASSIFY_ENTITY e = new CLASSIFY_ENTITY();
-				e.nClsId = imgs.get(j).classId;
-				e.vectors = imgs.get(j).featureV;
-				allImgs.add(e);
-				clsEnt.add(e);
+				int nId = (int)iterator.next();
+				ArrayList<MedicalImage> lst = m_imgs.get(nId);
 				
-				m_imgs.get(nDomainId).add(imgs.get(j));
+				for (int i = 0; i < lst.size(); i++)
+					m_nlzr.InitialScan(lst.get(i).featureV);
 			}
 			
-			//set model parameters
-			m_modelMgr.setModelParameter(nDomainId, param.bRBF, param.dbRBF_c, 
-					param.dbRBF_g, param.dbLinear_c);
-			
-			m_modelMgr.BuildModel(nDomainId, clsEnt);
-			clsEnt = null;
+			iterator = m_imgs.keySet().iterator();
+			while (iterator.hasNext()) 
+			{
+				int nId = (int)iterator.next();
+				ArrayList<MedicalImage> lst = m_imgs.get(nId);
+				
+				for (int i = 0; i < lst.size(); i++)
+					m_nlzr.normalizeVector(lst.get(i).featureV);
+			}
 		}
-		
-		//build the whole model
-		ModelParameter param = databaseAPI.getModelParameter(ModelManager.WHOLE_DOMAIN_ID);
-		if (param == null)
-		{
-			m_bInited = false;
-			return false;
-		}
-		
-		m_modelMgr.setModelParameter(ModelManager.WHOLE_DOMAIN_ID, param.bRBF, param.dbRBF_c, 
-				param.dbRBF_g, param.dbLinear_c);
-		
-		m_modelMgr.BuildModel(ModelManager.WHOLE_DOMAIN_ID, allImgs);
-		m_bInited = true;
-		
-		return m_bInited;
 	}
 	
 	//================== Member variables ==================================
 	
 	//image content is not preserved (MedicalImage.image == null)
+	//the "MedicalImage" is read only
 	private HashMap<Integer, ArrayList<MedicalImage>> m_imgs = 
 			new HashMap<Integer, ArrayList<MedicalImage>>();
 	
-	private boolean m_bInited = false;
-	
+	private double m_dbInitProgress = 0.0;
 	private ModelManager m_modelMgr = new ModelManager();
+	
+	//classes map
+	int m_nTotalClasses = 0;
+	HashMap<Integer, Integer> m_clsIndexMap = new HashMap<Integer, Integer>();
+	HashMap<Integer, String> m_clsNameMap = new HashMap<Integer, String>();
+	
+	//Normalizer
+	datamining.Normalizer m_nlzr 
+		= new datamining.Normalizer(ImgFeatureExtractionWrapper.TOTAL_DIM);
 }

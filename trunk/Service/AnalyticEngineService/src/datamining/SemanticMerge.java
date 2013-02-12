@@ -34,7 +34,11 @@ public class SemanticMerge {
 		
 		for (int i = 0; i < res.probRes.size(); i++)
 		{
-			vectors.set(m_nFeatureDim + res.probRes.get(i).nClsId, m_dbWeight*res.probRes.get(i).dbProb);
+			int clsIndex = (res.probRes.get(i).nClsId & ((1 << 16) - 1));
+			if (clsIndex < 0 || clsIndex >= m_nClsNum)
+				continue; 
+			
+			vectors.set(m_nFeatureDim + clsIndex, m_dbWeight*res.probRes.get(i).dbProb);
 		}
 	}
 	

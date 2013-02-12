@@ -2,7 +2,8 @@ package testScript;
 
 import imgproc.ImgFeatureExtractionWrapper;
 
-import java.io.*;   
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 

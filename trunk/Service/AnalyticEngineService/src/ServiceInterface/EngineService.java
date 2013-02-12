@@ -17,9 +17,9 @@ public class EngineService
 	/*******************  Service API group ***********************************/
 	//=================== Image management API =========================
 
-	public ArrayList<Long> GetPicId(int nDomainId, int nClassId)
+	public ArrayList<Long> GetPicId(int nClassId)
 	{
-		ArrayList<Long> res = databaseAPI.GetImageId(nDomainId, nClassId);
+		ArrayList<Long> res = databaseAPI.GetImageId(nClassId);
 		return res;
 	}
 
@@ -29,9 +29,10 @@ public class EngineService
 		return img.image;
 	}
 
-	public boolean DeleteImg(int nDomainId, int nClassId, long nImgId) 
+	public boolean DeleteImg(int nClassId, long nImgId) 
 	{
 		boolean res = databaseAPI.DeleteImage(nImgId);
+		int nDomainId = (nClassId >> 16);
 		
 		if (res)
 		{
@@ -48,8 +49,9 @@ public class EngineService
 		return res;
 	}
 
-	public boolean AddImg(int nDomainId, int nClassId, long nImgId, byte[] byteImg)
+	public boolean AddImg(int nClassId, long nImgId, byte[] byteImg)
 	{
+		int nDomainId = (nClassId >> 16);
 		MedicalImage img = new MedicalImage();
 		img.domainId = nDomainId;
 		img.classId = nClassId;
@@ -145,20 +147,49 @@ public class EngineService
 		databaseAPI.setModelParameter(nDomainId, param);
 		return true;
 	}
-
+	
+	public double getAutoTuningProgress(int nDomainId)
+	{
+		return m_modelMgr.getTuningProgress(nDomainId);
+	}
+	
+	public String getAutoTuningInfo(int nDomainId)
+	{
+		return m_modelMgr.getTuningInfo(nDomainId);
+	}
+	
+	//not in the auto tuning process
+	public String GetCurrentModelInfo(int nDomainId)
+	{
+		return m_modelMgr.getModelInfo(nDomainId);
+	}
+	
 	/*void stopTraining(int nDomainId)
 	void stopTuning(int nDomainId)*/
 
 	public boolean StartAutoTuning(int nDomainId)
 	{
 		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
-		if (null == param || !m_imgs.containsKey(nDomainId))
+		if (null == param || (nDomainId != ModelManager.WHOLE_DOMAIN_ID && !m_imgs.containsKey(nDomainId)))
 			return false;
 		
 		ArrayList<MedicalImage> imgSample = new ArrayList<MedicalImage>();
 		synchronized(this)
 		{
-			ArrayList<MedicalImage> imgRef = m_imgs.get(nDomainId);
+			ArrayList<MedicalImage> imgRef = null;
+			if (nDomainId != ModelManager.WHOLE_DOMAIN_ID)
+				imgRef = m_imgs.get(nDomainId);
+			else
+			{
+				imgRef = new ArrayList<MedicalImage>();
+				Iterator<Integer> iterator = m_imgs.keySet().iterator();
+				while (iterator.hasNext()) 
+				{
+					int nId = (int)iterator.next();
+					imgRef.addAll(m_imgs.get(nId));
+				}
+			}
+			
 			java.util.Random ran = new java.util.Random();
 			
 			for (int i = 1; i <= imgRef.size(); i++)
@@ -167,17 +198,18 @@ public class EngineService
 					imgSample.add(imgRef.get(i-1));
 				else
 				{
-					boolean bSelect = (ran.nextInt()%i < (imgSample.size()-1)); 
+					boolean bSelect = ((Math.abs(ran.nextInt())%i) <= (imgSample.size()-1)); 
 	
 					if (bSelect)
 					{
-						int nIndexSwap = ran.nextInt()%imgSample.size();
+						int nIndexSwap = Math.abs(ran.nextInt())%imgSample.size();
 						imgSample.set(nIndexSwap, imgRef.get(i-1));
 					}
 				}
 			}
 		}
 		
+		Collections.shuffle(imgSample);
 		ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
 		ArrayList<datamining.CLASSIFY_ENTITY> testDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
 		for (int i = 0; i < imgSample.size(); i++)
@@ -228,22 +260,6 @@ public class EngineService
 		m_modelMgr.requestTraining(nDomainId, paramNew, buildDataSet);
 		
 		return true;
-	}
-	
-	public double getAutoTuningProgress(int nDomainId)
-	{
-		return m_modelMgr.getTuningProgress(nDomainId);
-	}
-	
-	public String getAutoTuningInfo(int nDomainId)
-	{
-		return m_modelMgr.getTuningInfo(nDomainId);
-	}
-
-	//not in the auto tuning process
-	public String GetCurrentModelInfo(int nDomainId)
-	{
-		return m_modelMgr.getModelInfo(nDomainId);
 	}
 
 	//================== Recommendation API ====================================

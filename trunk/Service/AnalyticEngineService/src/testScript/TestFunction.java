@@ -12,7 +12,7 @@ public class TestFunction {
 
 	public static void RetrieveImageListTest()
 	{
-		ArrayList<MedicalImage> imageList = databaseAPI.RetrieveImageList(2, 131074, true);
+		ArrayList<MedicalImage> imageList = databaseAPI.RetrieveImageList(131074, true);
     	System.out.println("image list size: "+imageList.size());
     	
     	MedicalImage image = imageList.get(0);
@@ -27,7 +27,7 @@ public class TestFunction {
 	
 	public static void GetImageIdTest()
 	{
-		ArrayList<Long> imageIdList = databaseAPI.GetImageId(2, 131074);
+		ArrayList<Long> imageIdList = databaseAPI.GetImageId(131074);
     	System.out.println("image list size: "+imageIdList.size());
     	
     	for(int i = 0; i < imageIdList.size(); i++)
@@ -67,7 +67,6 @@ public class TestFunction {
 		SecondLevelClass secondLevelClass = classList.get(0);
     	System.out.println("class 1 classId: "+secondLevelClass.getClassId());
     	System.out.println("class 1 name: "+secondLevelClass.getClassName());
-		
 	}
 	
 	public static void getModelParameterTest()
@@ -87,6 +86,6 @@ public class TestFunction {
 	
 	public static void main(String args[])
 	{
-		TestFunction.RetrieveImageTest();
+		TestFunction.getClassTest();
 	}
 }

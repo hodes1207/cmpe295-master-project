@@ -23,7 +23,7 @@ public class DBTest {
    // @Test
 	public void RetrieveImageListTest() {
 
-    	ArrayList<MedicalImage> imageList = databaseAPI.RetrieveImageList(2, 131074, false);
+    	ArrayList<MedicalImage> imageList = databaseAPI.RetrieveImageList(131074, false);
     	//assertNotNull(imageList);
     	System.out.println("image list size: "+imageList.size());
     	

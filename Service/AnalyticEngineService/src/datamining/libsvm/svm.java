@@ -6,6 +6,8 @@ package datamining.libsvm;
 import java.io.*;
 import java.util.*;
 
+import datamining.liblinear.Linear;
+
 //
 // Kernel Cache
 //
@@ -1294,13 +1296,20 @@ public class svm {
 	//
 	public static final int LIBSVM_VERSION=312; 
 	public static final Random rand = new Random();
+	
+	private static boolean bDebugOutPut = true;
+	public static void disableDebugOutput() { bDebugOutPut = false; }
+	public static void enableDebugOutput() { bDebugOutPut = true; }
 
 	private static svm_print_interface svm_print_stdout = new svm_print_interface()
 	{
 		public void print(String s)
 		{
-			System.out.print(s);
-			System.out.flush();
+			if (bDebugOutPut)
+			{
+				System.out.print(s);
+				System.out.flush();
+			}
 		}
 	};
 

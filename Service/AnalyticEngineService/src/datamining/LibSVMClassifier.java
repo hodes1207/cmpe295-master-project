@@ -1,7 +1,6 @@
 package datamining;
 
 import java.util.ArrayList;
-
 import datamining.libsvm.*;
 
 public class LibSVMClassifier  extends SVMInterface {
@@ -15,6 +14,9 @@ public class LibSVMClassifier  extends SVMInterface {
 	
 	void setC(double c) { m_dbC = c; }
 	void setG(double g) { m_dbG = g; }
+	
+	public void disableDebugOutput() { svm.disableDebugOutput(); }
+	public void enableDebugOutput() { svm.enableDebugOutput(); }
 
 	public void BuildModel(ArrayList<CLASSIFY_ENTITY> dataset)
 	{

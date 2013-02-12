@@ -3,6 +3,8 @@ package datamining;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import datamining.libsvm.svm;
+
 public class ClassifyModel {
 
 	public void setRBFInfo(double dbC, double dbG)
@@ -40,6 +42,41 @@ public class ClassifyModel {
 		double dbTotalTuneTimes = param1.matrixC.length * param1.matrixG.length + param2.matrixC.length;
 		double dbCurTunedTimes = 0;
 		
+		//Tune linear model
+		{
+			for (int i = 0; i < param2.matrixC.length; i++) {
+				double c = param2.matrixC[i];
+				linearModel.setC(c);
+
+				if (bDebugOutput)
+					linearModel.enableDebugOutput();
+				else
+					linearModel.disableDebugOutput();
+
+				linearModel.BuildModel(buildDataSet);
+				param2.matrixRes[i] = linearModel.CrossValidation(testDataSet);
+
+				// Set tuning progress
+				dbCurTunedTimes += 1.0;
+				setTuningProgress(dbCurTunedTimes / dbTotalTuneTimes);
+
+				// Append tuning information
+				appendTuningInfo(param2.getTuneInfo(i));
+			}
+
+			int indexMaxC = 0;
+			double dbBestAccuracy = -1;
+			for (int i = 0; i < param2.matrixC.length; i++) {
+				if (param2.matrixRes[i] > dbBestAccuracy) {
+					indexMaxC = i;
+					dbBestAccuracy = param2.matrixRes[i];
+				}
+			}
+
+			param2.dbBestC = param2.matrixC[indexMaxC];
+			param2.dbBestAccuracy = dbBestAccuracy;
+		}
+				
 		// Tune RBF model
 		{
 			for (int i = 0; i < param1.matrixC.length; i++)
@@ -51,6 +88,11 @@ public class ClassifyModel {
 					
 					rbfModel.setC(c);
 					rbfModel.setG(g);
+					
+					if (bDebugOutput)
+						rbfModel.enableDebugOutput();
+					else
+						rbfModel.disableDebugOutput();
 					
 					rbfModel.BuildModel(buildDataSet);
 					param1.matrixRes[i][j] = rbfModel.CrossValidation(testDataSet);
@@ -83,39 +125,6 @@ public class ClassifyModel {
 			param1.dbBestC = param1.matrixC[indexMaxC];
 			param1.dbBestG = param1.matrixG[indexMaxG];
 			param1.dbBestAccuracy = dbBestAccuracy;
-		}
-		
-		//Tune linear model
-		{
-			for (int i = 0; i < param2.matrixC.length; i++)
-			{
-				double c = param2.matrixC[i];
-				linearModel.setC(c);
-					
-				linearModel.BuildModel(buildDataSet);
-				param2.matrixRes[i] = linearModel.CrossValidation(testDataSet);
-				
-				//Set tuning progress
-				dbCurTunedTimes += 1.0;
-				setTuningProgress(dbCurTunedTimes/dbTotalTuneTimes);
-				
-				//Append tuning information
-				appendTuningInfo(param2.getTuneInfo(i));
-			}
-			
-			int indexMaxC = 0;
-			double dbBestAccuracy = -1;
-			for (int i = 0; i < param2.matrixC.length; i++)
-			{
-				if (param2.matrixRes[i] > dbBestAccuracy)
-				{
-					indexMaxC = i;
-					dbBestAccuracy = param2.matrixRes[i];
-				}
-			}
-			
-			param2.dbBestC = param2.matrixC[indexMaxC];
-			param2.dbBestAccuracy = dbBestAccuracy;
 		}
 		
 		//Finished tuning, set tuning result
@@ -178,7 +187,6 @@ public class ClassifyModel {
 			
 			m_pModel = cls;
 			cls = null;
-			m_pModel.BuildModel(dataset);
 		}
 		else
 		{
@@ -187,8 +195,14 @@ public class ClassifyModel {
 			
 			m_pModel = cls;
 			cls = null;
-			m_pModel.BuildModel(dataset);
 		}
+		
+		if (bDebugOutput)
+			m_pModel.enableDebugOutput();
+		else
+			m_pModel.disableDebugOutput();
+		
+		m_pModel.BuildModel(dataset);
 	}
 	
 	public PROB_ESTIMATION_RES Classify(ArrayList<Double> vectors)
@@ -233,7 +247,8 @@ public class ClassifyModel {
 		else
 		{
 			strInfo += "Model accuracy: ";
-			strInfo += Double.toString(m_dbCurAccuracy);
+			strInfo += Double.toString(m_dbCurAccuracy*100);
+			strInfo += " percent";
 			strInfo += "  \n";
 		}
 		
@@ -254,7 +269,7 @@ public class ClassifyModel {
 	private boolean m_bRBF = true;
 	private double m_dbRBF_C = 0.03125;
 	private double m_dbRBF_G = 0.001;
-	private double m_dbLinear_C = 0.0315;
+	private double m_dbLinear_C = 0.03125;
 	private double m_dbCurAccuracy = -1.0;
 	
 	/******************** Model tuning related operation **************************/
@@ -311,7 +326,11 @@ public class ClassifyModel {
 		}
 	}
 	
+	public void disableDebugOutput() { bDebugOutput = false; }
+	public void enableDebugOutput() { bDebugOutput = true; }
+	
 	private boolean m_bIsTuning = false;
 	private double m_dbTuningProgress = 0.0;
 	private String m_strTuningInfo = new String("");
+	private boolean bDebugOutput = false;
 }

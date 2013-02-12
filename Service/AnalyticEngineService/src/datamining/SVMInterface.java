@@ -1,11 +1,16 @@
 package datamining;
 import java.util.ArrayList;
 
+import datamining.liblinear.Linear;
+
 public abstract class SVMInterface {
 	
 	 public abstract void BuildModel(ArrayList<CLASSIFY_ENTITY> dataset);
 	 
 	 public abstract PROB_ESTIMATION_RES Classify(ArrayList<Double> vectors);
+	 
+	 public abstract void disableDebugOutput();
+	 public abstract void enableDebugOutput();
 	 
 	 public double CrossValidation(ArrayList<CLASSIFY_ENTITY> dataset)
 	 {

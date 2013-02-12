@@ -8,6 +8,9 @@ public class LibLinearClassifier extends SVMInterface {
 	LibLinearClassifier(int dim) { m_nDim = dim; m_dbC = 1;}
 	
 	void setC(double c) { m_dbC = c; }
+	
+	public void disableDebugOutput() { Linear.disableDebugOutput(); }
+	public void enableDebugOutput() { Linear.enableDebugOutput(); }
 
 	public void BuildModel(ArrayList<CLASSIFY_ENTITY> dataset)
 	{

@@ -22,7 +22,7 @@ public class ServiceInitThrd  extends Thread {
 		ArrayList<CLASSIFY_ENTITY> allImgs = new ArrayList<CLASSIFY_ENTITY>();
 		
 		//build individual model
-		ArrayList<Domain> domains = databaseAPI.getDomain();
+		ArrayList<Domain> domains = databaseAPI.getInstance().getDomain();
 		double dbStep = 1.0/(1 + domains.size());
 		
 		int nClsIndex = 0;
@@ -34,7 +34,7 @@ public class ServiceInitThrd  extends Thread {
 				continue;
 			
 			//Initialize class map
-			ArrayList<SecondLevelClass> clses = databaseAPI.getClass(nDomainId);
+			ArrayList<SecondLevelClass> clses = databaseAPI.getInstance().getClass(nDomainId);
 			for (int j = 0; j < clses.size(); j++)
 				m_serv.appendClass(clses.get(j).classId, nClsIndex++, clses.get(j).className);
 			
@@ -43,7 +43,7 @@ public class ServiceInitThrd  extends Thread {
 			ArrayList<MedicalImage> imgs = new ArrayList<MedicalImage>();
 			for (int k = 0; k < clses.size(); k++)
 			{
-				imgs.addAll(databaseAPI.RetrieveImageList(clses.get(k).classId, false));
+				imgs.addAll(databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false));
 			}
 			
 			m_serv.addDomain(nDomainId);
@@ -73,7 +73,7 @@ public class ServiceInitThrd  extends Thread {
 			if (nDomainId == ModelManager.WHOLE_DOMAIN_ID)
 				continue;
 			
-			MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+			MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 			if (param == null)
 				continue;
 			
@@ -86,7 +86,7 @@ public class ServiceInitThrd  extends Thread {
 		}
 		
 		//build the whole model
-		MedicalParameter param = databaseAPI.getModelParameter(ModelManager.WHOLE_DOMAIN_ID);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(ModelManager.WHOLE_DOMAIN_ID);
 		if (param == null)
 			return;
 		

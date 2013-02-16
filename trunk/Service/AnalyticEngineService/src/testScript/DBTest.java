@@ -13,7 +13,7 @@ import database.databaseAPI;
 public class DBTest {
 
     //@Test
-	public void test() {
+	/*public void test() {
 		CouchDbConnector db = databaseAPI.getDBConnection("jing");
 		//assertNotNull(db);
 
@@ -33,6 +33,6 @@ public class DBTest {
     	System.out.println("image 1 imageId: "+image.getImageId());
     	//assertNull(image.getFeatureV());
   	
-	}
+	}*/
 
 }

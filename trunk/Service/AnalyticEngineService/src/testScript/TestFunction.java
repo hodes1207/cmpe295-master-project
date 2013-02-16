@@ -10,7 +10,7 @@ import database.databaseAPI;
 
 public class TestFunction {
 
-	public static void RetrieveImageListTest()
+	/*public static void RetrieveImageListTest()
 	{
 		ArrayList<MedicalImage> imageList = databaseAPI.RetrieveImageList(131074, true);
     	System.out.println("image list size: "+imageList.size());
@@ -87,5 +87,5 @@ public class TestFunction {
 	public static void main(String args[])
 	{
 		TestFunction.getClassTest();
-	}
+	}*/
 }

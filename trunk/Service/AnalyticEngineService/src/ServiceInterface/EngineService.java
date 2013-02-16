@@ -19,19 +19,19 @@ public class EngineService
 
 	public ArrayList<Long> GetPicId(int nClassId)
 	{
-		ArrayList<Long> res = databaseAPI.GetImageId(nClassId);
+		ArrayList<Long> res = databaseAPI.getInstance().GetImageId(nClassId);
 		return res;
 	}
 
 	public byte[] RetrieveImg(long nImgId) 
 	{
-		MedicalImage img = databaseAPI.RetrieveImage(nImgId);
+		MedicalImage img = databaseAPI.getInstance().RetrieveImage(nImgId);
 		return img.image;
 	}
 
 	public boolean DeleteImg(int nClassId, long nImgId) 
 	{
-		boolean res = databaseAPI.DeleteImage(nImgId);
+		boolean res = databaseAPI.getInstance().DeleteImage(nImgId);
 		int nDomainId = (nClassId >> 16);
 		
 		if (res)
@@ -65,7 +65,7 @@ public class EngineService
 			img.featureV.add(vectors[i]);
 		
 		//the feature vector stored in the database is not normalized
-		boolean bSuc = databaseAPI.AddImage(img);
+		boolean bSuc = databaseAPI.getInstance().AddImage(img);
 		
 		if (bSuc)
 		{
@@ -84,7 +84,7 @@ public class EngineService
 	//scope: first level classification
 	public ArrayList<Domain> GetDomain()
 	{
-		ArrayList<Domain> res = databaseAPI.getDomain();
+		ArrayList<Domain> res = databaseAPI.getInstance().getDomain();
 		
 		return res;
 	}
@@ -92,7 +92,7 @@ public class EngineService
 	//second level classification
 	public ArrayList<SecondLevelClass> GetClasses(int nDomianId)
 	{
-		ArrayList<SecondLevelClass> res = databaseAPI.getClass(nDomianId);
+		ArrayList<SecondLevelClass> res = databaseAPI.getInstance().getClass(nDomianId);
 		
 		return res;
 	}
@@ -101,7 +101,7 @@ public class EngineService
 
 	public boolean SetRBFKernelParam(int nDomainId, double c, double g, int nMaxSamples)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		if (null == param)
 			return false;
 		
@@ -110,13 +110,13 @@ public class EngineService
 		param.dbRBF_g = g;
 		param.nMaxSampleNum = nMaxSamples;
 		
-		databaseAPI.setModelParameter(nDomainId, param);
+		databaseAPI.getInstance().setModelParameter(nDomainId, param);
 		return true;
 	}
 
 	public boolean SetLinearKernelParam(int nDomainId, double c, int nMaxSamples)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		if (param == null)
 			return false;
 		
@@ -124,27 +124,27 @@ public class EngineService
 		param.dbLinear_c = c;
 		param.nMaxSampleNum = nMaxSamples;
 		
-		databaseAPI.setModelParameter(nDomainId, param);
+		databaseAPI.getInstance().setModelParameter(nDomainId, param);
 		
 		return true;
 	}
 
 	public int GetAutoTuningFoldNum(int nDomainId)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		
 		return null == param ? 0 : param.nFold;
 	}
 
 	public boolean SetAutoTuningFoldNum(int nDomainId, int nFold)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		if (param == null)
 			return false;
 		
 		param.nFold = nFold;
 		
-		databaseAPI.setModelParameter(nDomainId, param);
+		databaseAPI.getInstance().setModelParameter(nDomainId, param);
 		return true;
 	}
 	
@@ -169,7 +169,7 @@ public class EngineService
 
 	public boolean StartAutoTuning(int nDomainId)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		if (null == param || (nDomainId != ModelManager.WHOLE_DOMAIN_ID && !m_imgs.containsKey(nDomainId)))
 			return false;
 		
@@ -231,7 +231,7 @@ public class EngineService
 	
 	public boolean startTraining(int nDomainId)
 	{
-		MedicalParameter param = databaseAPI.getModelParameter(nDomainId);
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
 		if (null == param || !m_imgs.containsKey(nDomainId))
 			return false;
 		
@@ -394,6 +394,8 @@ public class EngineService
 	
 	public void startService()
 	{
+		databaseAPI.getInstance().initDBInstance("domainInfoTest", "classInfoTest", 
+				"medicalImageTest", "http://localhost:5984");
 		ServiceInitThrd initThrd = new ServiceInitThrd(this);
 		initThrd.start();
 	}

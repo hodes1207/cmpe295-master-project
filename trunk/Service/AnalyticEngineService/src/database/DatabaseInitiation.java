@@ -13,159 +13,163 @@ import java.util.HashMap;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.ektorp.AttachmentInputStream;
 import org.ektorp.CouchDbConnector;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import ServiceInterface.ModelManager;
 
-public class DatabaseInitiation {
-	public static String imageRootPath = "C:\\Users\\yhx176781066\\Desktop\\Master Project\\images\\IRMA\\2005";
+public class DatabaseInitiation 
+{
+	public static String xmlCfgFile = "C:\\Users\\yhx176781066\\Desktop\\Master Project\\" +
+			"cmpe295-master-project\\Service\\AnalyticEngineService\\testdb_ini.xml";
 
-	public static HashMap<String, Integer[]> domainClassRelationMap;
-	public static HashMap<String, String[]> classIdNameRelationMap;
-	public static String[] domainNameArray = { "head", "body", /*"upper limb",
-			"lower limb", "chest", "breast"*/ };
-
-	public static Integer[] head = { 1, 2, 3, 24, 25, 26, 44, 45, 46 };
-	public static Integer[] body = { 4, 5, 14, 15, 16, 17, 27, 28, 39, 40 };
-	public static Integer[] upperLimb = { 6, 7, 8, 9, 10, 11, 29, 30, 31, 32,
-			33, 47 };
-	public static Integer[] lowerLimb = { 18, 19, 20, 21, 22, 23, 35, 36, 37,
-			38, 50, 56 };
-	public static Integer[] chest = { 12, 13, 34 };
-	public static Integer[] breast = { 41, 42, 48, 49 };
-
-	public static String[] headName = { "Train01", "Train02", "Train03", "Train24", "Train25", "Train26", "Train44", "Train45", "Train46" };
-	public static String[] bodyName = { "Train04", "Train05", "Train14", "Train15", "Train16", "Train17", "Train27", "Train28", "Train39", "Train40" };
-	public static String[] upperLimbName = { "Train06", "Train07", "Train08", "Train09", "Train10", "Train11", "Train29", "Train30", "Train31", "Train32",
-		"Train33", "Train47" };
-	public static String[] lowerLimbName = { "Train18", "Train19", "Train20", "Train21", "Train22", "Train23", "Train35", "Train36", "Train37",
-		"Train38", "Train50", "Train56" };
-	public static String[] chestName = { "Train12", "Train13", "Train34" };
-	public static String[] breastName = { "Train41", "Train42", "Train48", "Train49" };
+	// domain id (domain index) to class ids
+	public static HashMap<Integer, Integer[]> domIdToClsId = new HashMap<Integer, Integer[]>();
 	
-	public static String classDBName = "classInfoTest";
-	public static String domainDBName = "domainInfoTest";
-	public static String medicalImageDBName = "medicalImageTest";
+	// domain id (domain index) to domain name
+	public static HashMap<Integer, String> domIdToDomName = new HashMap<Integer, String>();
 	
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// class id to folder path
+	public static HashMap<Integer, String> clsIdToFolder = new HashMap<Integer, String>();
+	// class id to class name
+	public static HashMap<Integer, String> clsIdToClsName = new HashMap<Integer, String>();
 
-	public static void initDomainClassRelationMap() {
-		domainClassRelationMap = new HashMap<String, Integer[]>();
-		domainClassRelationMap.put("head", head);
-		domainClassRelationMap.put("body", body);
-		/*domainClassRelationMap.put("upper limb", upperLimb);
-		domainClassRelationMap.put("lower limb", lowerLimb);
-		domainClassRelationMap.put("chest", chest);
-		domainClassRelationMap.put("breast", breast);*/
+	public static String classDBName = null;
+	public static String domainDBName = null;
+	public static String medicalImageDBName = null;
+	public static String DBUrl = null;
+	
+	public static boolean parseCfgFile()
+	{	
+		try 
+		{
+			File cfgFile = new File(xmlCfgFile);
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(cfgFile);
+			doc.getDocumentElement().normalize();
+			
+			Element root = (Element)doc.getElementsByTagName("DatabaseImport").item(0);
+			classDBName = root.getAttribute("classDBName");
+			domainDBName = root.getAttribute("domainDBName");
+			medicalImageDBName = root.getAttribute("medicalImageDBName");
+			DBUrl = root.getAttribute("DBUrl");
+			
+			NodeList domNodes = root.getElementsByTagName("domain");
+			for (int domId = 0; domId < domNodes.getLength(); domId++)
+			{
+				Element domElem = (Element)domNodes.item(domId);
+				String domName = domElem.getAttribute("name");
+				domIdToDomName.put(domId, domName);
+				
+				NodeList clsNodes = domElem.getElementsByTagName("class");
+				domIdToClsId.put(domId, new Integer[clsNodes.getLength()]); 
+				
+				for (int clsIndex = 0; clsIndex < clsNodes.getLength(); clsIndex++)
+				{
+					Element clsElem = (Element)clsNodes.item(clsIndex);
+					String clsName = clsElem.getAttribute("name");
+					String clsFolder = clsElem.getTextContent();
+					int clsId = ((domId << 16) + clsIndex);
+					
+					domIdToClsId.get(domId)[clsIndex] = clsId;
+					clsIdToClsName.put(clsId, clsName);
+					clsIdToFolder.put(clsId, clsFolder);
+				}
+			}
+		} 
+		catch (ParserConfigurationException | SAXException | IOException e1) 
+		{
+			e1.printStackTrace();
+			return false;
+		}
+		
+		return true;
 	}
 
-	public static void initclassIdNameRelationMap() {
-		classIdNameRelationMap = new HashMap<String, String[]>();
-		classIdNameRelationMap.put("head", headName);
-		classIdNameRelationMap.put("body", bodyName);
-		classIdNameRelationMap.put("upper limb", upperLimbName);
-		classIdNameRelationMap.put("lower limb", lowerLimbName);
-		classIdNameRelationMap.put("chest", chestName);
-		classIdNameRelationMap.put("breast", breastName);
+	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	}
-	
-	  public static void main(String[] args) {
-	 
+	public static void main(String[] args) {
+
+		if (!parseCfgFile())
+			return;
+		
 		Random randomGenerator = new Random();
 		try {
-			// create three diff dbs
-			CouchDbConnector imageDB = databaseAPI
-					.getDBConnection(medicalImageDBName);			
-			CouchDbConnector domainDB = databaseAPI
-					.getDBConnection(domainDBName);		
-			CouchDbConnector classDB = databaseAPI.getDBConnection(classDBName);
+			databaseAPI.getInstance().initDBInstance(domainDBName, classDBName, medicalImageDBName, DBUrl);
+			databaseAPI.getInstance().deleteExistedDBs();
 			
-			// create repository for three dbs
-			MedicalImageRepository imageRepo = new MedicalImageRepository(
-					imageDB);
-			DomainRepository domainRepo = new DomainRepository(domainDB);
-			SecondLevelClassRepository classRepo = new SecondLevelClassRepository(
-					classDB);
+			// create three databases
+			CouchDbConnector imageDB = databaseAPI.getInstance().getImgDBConnection();
+			CouchDbConnector domainDB = databaseAPI.getInstance().getDomDBConnection();
+			CouchDbConnector classDB = databaseAPI.getInstance().getClsDBConnection();
 
-			// init
-			DatabaseInitiation.initDomainClassRelationMap();
-			DatabaseInitiation.initclassIdNameRelationMap();
+			// create repository for three databases
+			MedicalImageRepository imageRepo = new MedicalImageRepository(imageDB);
+			DomainRepository domainRepo = new DomainRepository(domainDB);
+			SecondLevelClassRepository classRepo = new SecondLevelClassRepository(classDB);
 
 			// store whole domain info
-			Domain domainWhole = new Domain(
-					"WholeDomain", ModelManager.WHOLE_DOMAIN_ID);
+			Domain domainWhole = new Domain("WholeDomain", ModelManager.WHOLE_DOMAIN_ID);
 			domainWhole.setId(Integer.toString(ModelManager.WHOLE_DOMAIN_ID));
 			domainRepo.add(domainWhole);
-			
-			for (int i = 0; i < DatabaseInitiation.domainNameArray.length; i++) {
-				
+
+			for (int domId = 0; domId < domIdToDomName.size(); domId++) {
+
 				// store info into domain db
-				Domain domain = new Domain(
-						DatabaseInitiation.domainNameArray[i], i);
-				domain.setId(Integer.toString(i));
+				String domainName = domIdToDomName.get(domId);
+				Domain domain = new Domain(domainName, domId);
+				domain.setId(Integer.toString(domId));
 				domainRepo.add(domain);
-				
-				// store info into class db
-				String domainName = DatabaseInitiation.domainNameArray[i];
-				Integer[] classIdNum = DatabaseInitiation.domainClassRelationMap.get(domainName);
-				String[] className = DatabaseInitiation.classIdNameRelationMap.get(domainName);
-				for (int j = 0; j < classIdNum.length; j++){
-					int classId = (i << 16) + j;
-					SecondLevelClass secondClass = new SecondLevelClass(className[j],classId);
+
+				// store info into class database
+				Integer[] classIds = domIdToClsId.get(domId);
+				for (int clsIndex = 0; clsIndex < classIds.length; clsIndex++) {
+					int classId = classIds[clsIndex];
+					SecondLevelClass secondClass = new SecondLevelClass(
+							clsIdToClsName.get(classId), classId);
 					secondClass.setId(Integer.toString(classId));
 					classRepo.add(secondClass);
 				}
 			}
 
-			
-			// store images into image db
-			for (int i = 0; i < DatabaseInitiation.domainNameArray.length; i++) {
-				for (int j = 0; j < DatabaseInitiation.domainClassRelationMap
-						.get(DatabaseInitiation.domainNameArray[i]).length; j++) {
-					System.out.println("Domain Id: " + i);
+			// store images into image database
+			for (int domId = 0; domId < domIdToDomName.size(); domId++) 
+			{
+				Integer[] classIds = domIdToClsId.get(domId);
+				for (int clsIndex = 0; clsIndex < classIds.length; clsIndex++) {
+					System.out.println("Domain Id: " + domId);
 
-					int trainId = DatabaseInitiation.domainClassRelationMap
-							.get(DatabaseInitiation.domainNameArray[i])[j];
-					int classId = (i<<16) + j;
-					System.out
-					.println("Class Id Num: "
-							+ classId);
+					int classId = classIds[clsIndex];
+					System.out.println("Class Id Num: " + classId);
 
-					String imageClassPath;
-					if (trainId < 10) {
-						imageClassPath = "Train0" + trainId;
-					} else {
-						imageClassPath = "Train" + trainId;
-					}
+					String imageClassPath = clsIdToFolder.get(classId);
 
-					System.out.println("Image File Path: " + imageClassPath);
-					System.out.println("Image Folder Path: "
-							+ DatabaseInitiation.imageRootPath + "//"
-							+ imageClassPath);
-					File trainFolder = new File(
-							DatabaseInitiation.imageRootPath + "//"
-									+ imageClassPath);
+					System.out.println("Image folder Path: " + imageClassPath);
+					File trainFolder = new File(imageClassPath);
 					File[] listOfImages = trainFolder.listFiles();
 					System.out.println("Image File List Length: "
 							+ listOfImages.length);
 
 					// listOfImages.length - 1 to avoid Thumb.db file at the end
-					for (int n = 0; n < listOfImages.length - 1; n++) {
+					for (int i = 0; i < listOfImages.length; i++) {
 						if (listOfImages[i].isFile()) {
 							MedicalImage image = new MedicalImage();
-							//image.setFeatureV(featureV);
-							image.setDomainId(i);
+							image.setDomainId(domId);
 							image.setClassId(classId);
 
-							System.out.println("Image File: "
-									+ listOfImages[n].getName());
+							System.out.println("Image File: " + listOfImages[i].getName());
 
 							Long imageId = randomGenerator.nextLong();
 							image.setImageId(imageId);
-
 							System.out.println("Image Id: " + imageId);
 
 							// TO DO: if doc id can be other type, or create
@@ -174,65 +178,59 @@ public class DatabaseInitiation {
 							image.setId(docId);
 							System.out.println("Doc Id: " + docId);
 
-
-
 							// create png image attachment to this image
 							// document in db
 							BufferedImage imageBuffer = ImageIO
-									.read(listOfImages[n]);
+									.read(listOfImages[i]);
+							
+							if (null == imageBuffer) 
+								continue;
+							
 							ByteArrayOutputStream os = new ByteArrayOutputStream();
 							ImageIO.write(imageBuffer, "png", os);
 							InputStream data = new ByteArrayInputStream(
 									os.toByteArray());
-							
+
 							String contentType = "image/png";
 
 							byte[] imageByteArray = os.toByteArray();
 							image.setImage(imageByteArray);
 							double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
-							ImgFeatureExtractionWrapper.extractFeature(imageByteArray, vectors);
+							ImgFeatureExtractionWrapper.extractFeature(
+									imageByteArray, vectors);
 							ArrayList<Double> featureV = new ArrayList<Double>();
-							for (int k = 0; k < vectors.length; k++){
+							for (int k = 0; k < vectors.length; k++) {
 								featureV.add(vectors[k]);
 							}
-							
+
 							image.setFeatureV(featureV);
-							
+
 							// add image to db without the png file
 							imageRepo.add(image);
-							
+
 							AttachmentInputStream attachment = new AttachmentInputStream(
-									listOfImages[n].getName(), data,
-									contentType);
+									listOfImages[i].getName(), data, contentType);
 
 							// imageDB
 							Boolean docExist = imageRepo.contains(docId);
 							if (docExist) {
 								MedicalImage temp = imageRepo.get(docId);
 
-								System.out.println("Revision Num: "
-										+ temp.getRevision());
-
-								imageDB.createAttachment(docId,
-										temp.getRevision(), attachment);
-
+								System.out.println("Revision Num: "	+ temp.getRevision());
+								imageDB.createAttachment(docId,	temp.getRevision(), attachment);
 							}
 						} else if (listOfImages[i].isDirectory()) {
 							System.out.println("Directory: "
-									+ listOfImages[n].getName());
+									+ listOfImages[i].getName());
 						}
 					}
 				}
 			}
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-	} 
-	
+	}
 
 }
-
-

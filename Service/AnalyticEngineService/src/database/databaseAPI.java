@@ -17,49 +17,96 @@ import org.ektorp.impl.StdCouchDbInstance;
 
 public class databaseAPI {
 	
-	public static CouchDbConnector getDBConnection(String dbName){
+	private static databaseAPI instance = new databaseAPI(); 
+
+	public static databaseAPI getInstance() { 
+	       return instance; 
+	   } 
+	
+	public boolean initDBInstance(String domDBName, String clsDBName, String imgDBName, String url)
+	{
+		classDBName = clsDBName;
+		domainDBName = domDBName;
+		medicalImageDBName = imgDBName;
+		DBUrl = url;
 		HttpClient httpClient;
+		
 		try {
-			httpClient = new StdHttpClient.Builder().url("http://localhost:5984").build();
-	        CouchDbInstance dbInstance = new StdCouchDbInstance(httpClient);
-	        CouchDbConnector db = new StdCouchDbConnector(dbName, dbInstance);
+			httpClient = new StdHttpClient.Builder().url(DBUrl).build();
+	        dbInstance = new StdCouchDbInstance(httpClient);
 	        
-	        db.createDatabaseIfNotExists();
-	        
-			return db;
-		} catch (MalformedURLException e) {
+	        getDomDBConnection();
+	        getClsDBConnection();
+	        getImgDBConnection();
+		} 
+		catch (MalformedURLException e) 
+		{
 			e.printStackTrace();
+			return false;
 		}
 
-        return null;
+        return true;
 	}
-
-	static public boolean AddImage(MedicalImage image)
+	
+	public void deleteExistedDBs()
 	{
-		try{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
+		dbInstance.deleteDatabase(classDBName);
+		dbInstance.deleteDatabase(domainDBName);
+		dbInstance.deleteDatabase(medicalImageDBName);
+	}
+	
+	public CouchDbConnector getDomDBConnection()
+	{
+		if (null == dbConDom)
+		{
+			dbConDom = new StdCouchDbConnector(domainDBName, dbInstance);
+			dbConDom.createDatabaseIfNotExists();
+		}
 		
+		return dbConDom;
+	}
+	
+	public CouchDbConnector getClsDBConnection()
+	{
+		if (null == dbConCls)
+		{
+			dbConCls = new StdCouchDbConnector(classDBName, dbInstance);
+			dbConCls.createDatabaseIfNotExists();
+		}
 		
-		MedicalImageRepository imageRepo = new MedicalImageRepository(
-				imageDB);
+		return dbConCls;
+	}
+	
+	public CouchDbConnector getImgDBConnection()
+	{
+		if (null == dbConImg)
+		{
+			dbConImg = new StdCouchDbConnector(medicalImageDBName, dbInstance);
+			dbConImg.createDatabaseIfNotExists();
+		}
 		
-		imageRepo.add(image);
+		return dbConImg;
+	}
+	
+	public boolean AddImage(MedicalImage image)
+	{
+		try
+		{
+			MedicalImageRepository imageRepo = new MedicalImageRepository(dbConImg);
+			imageRepo.add(image);
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
 		
 		return true;
-		}catch(Exception e){
-		return false;
-		}
 	}
 
 	//bImgContent:to include byte[] or not
-	static public ArrayList<MedicalImage> RetrieveImageList
-	(int classId, boolean bImgContent)
+	public ArrayList<MedicalImage> RetrieveImageList(int classId, boolean bImgContent)
 	{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
-		
-		new MedicalImageRepository(imageDB);
+		new MedicalImageRepository(dbConImg);
 		
 		int domainId = (classId >> 16);
 		ComplexKey key = ComplexKey.of(domainId, classId);
@@ -68,7 +115,7 @@ public class databaseAPI {
         .viewName("image_view")
         .key(key);
 		
-		List<MedicalImage> imageList= imageDB.queryView(query, MedicalImage.class);
+		List<MedicalImage> imageList= dbConImg.queryView(query, MedicalImage.class);
 		
 		ArrayList<MedicalImage> medicalImageList = new ArrayList<MedicalImage>();
 		for(int i = 0; i < imageList.size(); i++)
@@ -81,12 +128,9 @@ public class databaseAPI {
 		return medicalImageList;
 	}
 
-	static public ArrayList<Long> GetImageId(int classId)
+	public ArrayList<Long> GetImageId(int classId)
 	{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
-		
-		new MedicalImageRepository(imageDB);
+		new MedicalImageRepository(dbConImg);
 		
 		int nDomainId = (classId >> 16);
 		ComplexKey key = ComplexKey.of(nDomainId, classId);
@@ -95,7 +139,7 @@ public class databaseAPI {
         .viewName("imageId_view")
         .key(key);
 
-		ViewResult result = imageDB.queryView(query);
+		ViewResult result = dbConImg.queryView(query);
 		List<Row> rowList = result.getRows();
 		
 		ArrayList<Long> imageIdList = new ArrayList<Long>();
@@ -110,21 +154,16 @@ public class databaseAPI {
 	}
 
 	//include image byte[] in the image object
-	static public MedicalImage RetrieveImage(long imageId)
+	public MedicalImage RetrieveImage(long imageId)
 	{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
-		
-		
-		MedicalImageRepository imageRepo = new MedicalImageRepository(
-				imageDB);
+		MedicalImageRepository imageRepo = new MedicalImageRepository(dbConImg);
 		
 		ViewQuery query = new ViewQuery()
         .designDocId("_design/MedicalImage")
         .viewName("imageId_docId_view")
         .key(imageId);
 
-		ViewResult result = imageDB.queryView(query);
+		ViewResult result = dbConImg.queryView(query);
 		List<Row> rowList = result.getRows();
 		
 		String docId = rowList.get(0).getValue();
@@ -132,40 +171,32 @@ public class databaseAPI {
 		return image;
 	}
 
-	static public boolean DeleteImage(long imageId)
+	public boolean DeleteImage(long imageId)
 	{
-		try{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
-		
-		
-		MedicalImageRepository imageRepo = new MedicalImageRepository(
-				imageDB);
-		
-		ViewQuery query = new ViewQuery()
-        .designDocId("_design/MedicalImage")
-        .viewName("imageId_docId_view")
-        .key(imageId);
+		try
+		{
+			MedicalImageRepository imageRepo = new MedicalImageRepository(dbConImg);
 
-		ViewResult result = imageDB.queryView(query);
-		List<Row> rowList = result.getRows();
-		
-		String docId = rowList.get(0).getValue();
-		MedicalImage image = imageRepo.get(docId);
-		imageRepo.remove(image);
-		return true;
-		}catch(Exception e){
+			ViewQuery query = new ViewQuery()
+					.designDocId("_design/MedicalImage")
+					.viewName("imageId_docId_view").key(imageId);
+
+			ViewResult result = dbConImg.queryView(query);
+			List<Row> rowList = result.getRows();
+
+			String docId = rowList.get(0).getValue();
+			MedicalImage image = imageRepo.get(docId);
+			imageRepo.remove(image);
+		} catch (Exception e) {
 			return false;
 		}
+		
+		return true;
 	}
 
-	static public ArrayList<Domain> getDomain()
+	public ArrayList<Domain> getDomain()
 	{
-		CouchDbConnector domainDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.domainDBName);
-		
-		
-		DomainRepository domainRepo = new DomainRepository(domainDB);
+		DomainRepository domainRepo = new DomainRepository(dbConDom);
 		List<Domain> domainList = domainRepo.getAll();
 		
 		//convert to ArrayList
@@ -177,70 +208,33 @@ public class databaseAPI {
 	}
 
 
-	static public ArrayList<SecondLevelClass> getClass(int nDomainId)
+	public ArrayList<SecondLevelClass> getClass(int nDomainId)
 	{
-		CouchDbConnector imageDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.medicalImageDBName);
-		CouchDbConnector classDB = databaseAPI.getDBConnection(DatabaseInitiation.classDBName);
+		SecondLevelClassRepository clsRepo = new SecondLevelClassRepository(dbConCls);
+		List<SecondLevelClass> clsList = clsRepo.getAll();
 		
-		new MedicalImageRepository(imageDB);
-		SecondLevelClassRepository classRepo = new SecondLevelClassRepository(
-				classDB);
-		
-		ComplexKey startKey = ComplexKey.of(nDomainId);
-		String domainN = DatabaseInitiation.domainNameArray[nDomainId];
-		DatabaseInitiation.initDomainClassRelationMap();
-		int classSize = DatabaseInitiation.domainClassRelationMap.get(domainN).length;
-		int totalClassNumBelongToThisDomain = (nDomainId << 16) + classSize;
-		//System.out.println(classSize + " , " + totalClassNumBelongToThisDomain);
-		ComplexKey endKey = ComplexKey.of(nDomainId, totalClassNumBelongToThisDomain);
-		
-		ViewQuery query = new ViewQuery()
-        .designDocId("_design/MedicalImage")
-        .viewName("domainId_classId_view")
-        .group(true)
-        .startKey(startKey)
-        .endKey(endKey)
-        .inclusiveEnd(true);
-
-		ViewResult result = imageDB.queryView(query);
-		List<Row> rowList = result.getRows();
-		
-		/*for(int i = 0; i < rowList.size(); i++){
-	    	System.out.println(i+". [domainId, classId]: "+rowList.get(i).getKey());
-	    	System.out.println();
-		}*/
-		
-		ArrayList<SecondLevelClass> classList = new ArrayList<SecondLevelClass>();
-		for(int i = 0; i < rowList.size(); i++)
+		ArrayList<SecondLevelClass> res = new ArrayList<SecondLevelClass>();
+		for (int i = 0; i < clsList.size(); i++)
 		{
-			String  str = rowList.get(i).getKey();
-			String strClass = str.split(",")[1];
-			String classId = strClass.split("]")[0];
-			//System.out.println("classId :" +classId);
-			SecondLevelClass classObj = classRepo.get(classId);
-			classList.add(classObj);
+			int domId = (clsList.get(i).classId >> 16);
+			if (nDomainId < 0 || domId == nDomainId)
+				res.add(clsList.get(i));
 		}
 		
-		return classList; 
+		return res;
 	}
 
-	static public MedicalParameter getModelParameter(int nDomainId)
+	public MedicalParameter getModelParameter(int nDomainId)
 	{
-		CouchDbConnector domainDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.domainDBName);
-		DomainRepository domainRepo = new DomainRepository(domainDB);
+		DomainRepository domainRepo = new DomainRepository(dbConDom);
 		
 		Domain domain = domainRepo.get(Integer.toString(nDomainId));
 		return domain.getMedicalParameter();
 	}
 
-	static public void setModelParameter(int nDomainId, MedicalParameter param)
+	public void setModelParameter(int nDomainId, MedicalParameter param)
 	{
-		CouchDbConnector domainDB = databaseAPI
-				.getDBConnection(DatabaseInitiation.domainDBName);
-		
-		DomainRepository domainRepo = new DomainRepository(domainDB);
+		DomainRepository domainRepo = new DomainRepository(dbConDom);
 		
 		Domain newDomain = domainRepo.get(Integer.toString(nDomainId));
 		newDomain.setMedicalParameter(param);
@@ -248,4 +242,13 @@ public class databaseAPI {
 		
 	}
 	
+	private String classDBName = null;
+	private String domainDBName = null;
+	private String medicalImageDBName = null;
+	private String DBUrl = null;
+	
+	CouchDbInstance dbInstance = null;
+	CouchDbConnector dbConDom = null;
+	CouchDbConnector dbConCls = null;
+	CouchDbConnector dbConImg = null;
 }

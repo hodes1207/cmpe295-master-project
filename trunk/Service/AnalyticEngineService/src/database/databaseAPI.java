@@ -115,6 +115,8 @@ public class databaseAPI {
         .viewName("image_view")
         .key(key);
 		
+		query.cacheOk(true);
+		
 		List<MedicalImage> imageList= dbConImg.queryView(query, MedicalImage.class);
 		
 		ArrayList<MedicalImage> medicalImageList = new ArrayList<MedicalImage>();
@@ -138,6 +140,8 @@ public class databaseAPI {
         .designDocId("_design/MedicalImage")
         .viewName("imageId_view")
         .key(key);
+		
+		query.cacheOk(true);
 
 		ViewResult result = dbConImg.queryView(query);
 		List<Row> rowList = result.getRows();
@@ -162,6 +166,8 @@ public class databaseAPI {
         .designDocId("_design/MedicalImage")
         .viewName("imageId_docId_view")
         .key(imageId);
+		
+		query.cacheOk(true);
 
 		ViewResult result = dbConImg.queryView(query);
 		List<Row> rowList = result.getRows();
@@ -180,6 +186,8 @@ public class databaseAPI {
 			ViewQuery query = new ViewQuery()
 					.designDocId("_design/MedicalImage")
 					.viewName("imageId_docId_view").key(imageId);
+			
+			query.cacheOk(true);
 
 			ViewResult result = dbConImg.queryView(query);
 			List<Row> rowList = result.getRows();
@@ -187,7 +195,9 @@ public class databaseAPI {
 			String docId = rowList.get(0).getValue();
 			MedicalImage image = imageRepo.get(docId);
 			imageRepo.remove(image);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 			return false;
 		}
 		
@@ -204,6 +214,7 @@ public class databaseAPI {
 		for(int i = 0;i < domainList.size(); i++){
 			domainArrayList.add(domainList.get(i));
 		}
+		
 		return domainArrayList; 
 	}
 
@@ -239,7 +250,6 @@ public class databaseAPI {
 		Domain newDomain = domainRepo.get(Integer.toString(nDomainId));
 		newDomain.setMedicalParameter(param);
 		domainRepo.update(newDomain);
-		
 	}
 	
 	private String classDBName = null;

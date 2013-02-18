@@ -226,7 +226,7 @@ public class DatabaseInitiation
 					}
 				}
 			}
-
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

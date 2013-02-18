@@ -23,6 +23,23 @@ public class MedicalImage {
     public byte[] image = null;
 	
     public ArrayList<Double> featureV; 
+    
+    @SuppressWarnings("unchecked")
+	public MedicalImage clone()
+    {
+    	MedicalImage ret = new MedicalImage();
+    	
+    	ret.id = id;
+    	ret.classId = classId;
+    	ret.domainId = domainId;
+    	ret.featureV = (ArrayList<Double>)featureV.clone();
+    	if (null != image)
+    		ret.image = image.clone();
+    	ret.revision = revision;
+    	ret.imageId = imageId;
+    	
+    	return ret;
+    }
 	
 	public MedicalImage(){
 		domainId = -1;

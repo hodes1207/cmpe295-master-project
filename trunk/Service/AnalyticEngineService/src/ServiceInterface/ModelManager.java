@@ -189,6 +189,61 @@ public class ModelManager {
 		return model.Classify(imgFeature);
 	}
 	
+	public boolean enableRBFTuning(int nDomainId)
+	{
+		ClassifyModel model = null;
+		synchronized(this)
+		{
+			if (nDomainId != WHOLE_DOMAIN_ID && !m_domainModels.containsKey(nDomainId))
+				return false;
+			
+			if (WHOLE_DOMAIN_ID == nDomainId)
+				model = m_wholeModel;
+			else
+				model = m_domainModels.get(nDomainId);
+			
+			model.enableRBFTuning();
+		}
+		
+		return true;
+	}
+	
+	public boolean disableRBFTuning(int nDomainId)
+	{
+		ClassifyModel model = null;
+		synchronized(this)
+		{
+			if (nDomainId != WHOLE_DOMAIN_ID && !m_domainModels.containsKey(nDomainId))
+				return false;
+			
+			if (WHOLE_DOMAIN_ID == nDomainId)
+				model = m_wholeModel;
+			else
+				model = m_domainModels.get(nDomainId);
+			
+			model.disableRBFTuning();
+		}
+		
+		return true;
+	}
+	
+	public boolean isRBFTuningEnabled(int nDomainId)
+	{
+		ClassifyModel model = null;
+		synchronized(this)
+		{
+			if (nDomainId != WHOLE_DOMAIN_ID && !m_domainModels.containsKey(nDomainId))
+				return false;
+			
+			if (WHOLE_DOMAIN_ID == nDomainId)
+				model = m_wholeModel;
+			else
+				model = m_domainModels.get(nDomainId);
+			
+			return model.isRBFTuningEnabled();
+		}
+	}
+	
 	private HashMap<Integer, ClassifyModel> m_domainModels = 
 			new HashMap<Integer, ClassifyModel>();
 	

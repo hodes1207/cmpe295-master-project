@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DatabaseImport classDBName="classInfoTest" domainDBName = "domainInfoTest" medicalImageDBName = "medicalImageTest" DBUrl="http://localhost:5984">
+<DatabaseImport classDBName="classInfo" domainDBName = "domainInfo" medicalImageDBName = "medicalImage" DBUrl="http://localhost:5984">
 
 	<domain name="head">
             	<class name="Train01">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train01</class>

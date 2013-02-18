@@ -22,7 +22,7 @@ public class WorkFLowTest {
 				Thread.sleep(3000);
 			}
 			
-			/*//basic function test
+			//basic function test
 			ArrayList<Domain> domains = serv.GetDomain();
 			ArrayList<SecondLevelClass> clses = serv.GetClasses(domains.get(1).domainId);
 			
@@ -33,7 +33,11 @@ public class WorkFLowTest {
 			//bRes = serv.AddImg((1<<16)+1, testId, content);
 			
 			ArrayList<Long> res = serv.SimilaritySearch(content, 100);
-			String clsRes = serv.classificationEstimation(content, 1);*/
+			for (int i = 0; i < res.size(); i++)
+				System.out.println(res.get(i));
+			
+			//String clsRes = serv.classificationEstimation(content, 1);
+			//System.out.println(clsRes);
 			
 			/*serv.SetRBFKernelParam(-1, 0.03124, 0.0011, 998);
 			serv.SetAutoTuningFoldNum(-1, 6);

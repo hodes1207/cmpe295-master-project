@@ -1,8 +1,6 @@
 package datamining;
 import java.util.ArrayList;
 
-import datamining.liblinear.Linear;
-
 public abstract class SVMInterface {
 	
 	 public abstract void BuildModel(ArrayList<CLASSIFY_ENTITY> dataset);

@@ -3,8 +3,6 @@ package datamining;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import datamining.libsvm.svm;
-
 public class ClassifyModel {
 
 	public void setRBFInfo(double dbC, double dbG)
@@ -31,15 +29,19 @@ public class ClassifyModel {
 		
 		int nDim = buildDataSet.get(0).vectors.size();
 		
-		LibSVMClassifier rbfModel = new LibSVMClassifier(nDim);
-		RBFTuningParam param1 = new RBFTuningParam();
-		param1.DefaultInit();
-		
 		LibLinearClassifier linearModel = new LibLinearClassifier(nDim);
 		LinearTuningParam param2 = new LinearTuningParam();
 		param2.DefaultInit();
 		
-		double dbTotalTuneTimes = param1.matrixC.length * param1.matrixG.length + param2.matrixC.length;
+		boolean bRBFEnabled = m_enableRBFTuning;
+		
+		RBFTuningParam param1 = new RBFTuningParam();
+		param1.DefaultInit();
+		
+		double dbTotalTuneTimes = param2.matrixC.length;
+		if (bRBFEnabled)
+			dbTotalTuneTimes += param1.matrixC.length * param1.matrixG.length;
+		
 		double dbCurTunedTimes = 0;
 		
 		//Tune linear model
@@ -77,8 +79,12 @@ public class ClassifyModel {
 			param2.dbBestAccuracy = dbBestAccuracy;
 		}
 				
+		
 		// Tune RBF model
+		if (bRBFEnabled)
 		{
+			LibSVMClassifier rbfModel = new LibSVMClassifier(nDim);
+			
 			for (int i = 0; i < param1.matrixC.length; i++)
 			{
 				for (int j = 0; j < param1.matrixG.length; j++)
@@ -129,7 +135,7 @@ public class ClassifyModel {
 		
 		//Finished tuning, set tuning result
 		ModelTuneResult res = new ModelTuneResult();
-		if (param1.dbBestAccuracy > param2.dbBestAccuracy)
+		if (bRBFEnabled && param1.dbBestAccuracy > param2.dbBestAccuracy)
 		{
 			res.m_bRBF = true;
 			res.m_dbRBF_C = param1.dbBestC;
@@ -329,8 +335,13 @@ public class ClassifyModel {
 	public void disableDebugOutput() { bDebugOutput = false; }
 	public void enableDebugOutput() { bDebugOutput = true; }
 	
+	public void enableRBFTuning() { m_enableRBFTuning = true; }
+	public void disableRBFTuning() { m_enableRBFTuning = false; }
+	public boolean isRBFTuningEnabled() { return m_enableRBFTuning; }
+	
 	private boolean m_bIsTuning = false;
 	private double m_dbTuningProgress = 0.0;
 	private String m_strTuningInfo = new String("");
 	private boolean bDebugOutput = false;
+	boolean m_enableRBFTuning = false;
 }

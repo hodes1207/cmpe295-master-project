@@ -261,6 +261,21 @@ public class EngineService
 		
 		return true;
 	}
+	
+	public boolean enableRBFTuning(int nDomainId)
+	{
+		return m_modelMgr.enableRBFTuning(nDomainId);
+	}
+	
+	public boolean disableRBFTuning(int nDomainId)
+	{
+		return m_modelMgr.disableRBFTuning(nDomainId);
+	}
+	
+	public boolean isRBFTuningEnabled(int nDomainId)
+	{
+		return m_modelMgr.isRBFTuningEnabled(nDomainId);
+	}
 
 	//================== Recommendation API ====================================
 	//return a list of picture ID (nNum pictures)
@@ -290,22 +305,6 @@ public class EngineService
 			}
 		}
 		
-		//Append semantic vector to input image
-		PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, ModelManager.WHOLE_DOMAIN_ID);
-		SemanticMerge sm = new SemanticMerge(ImgFeatureExtractionWrapper.TOTAL_DIM, m_nTotalClasses);
-		sm.merge(featureV, res);
-				
-		for (int i = 0; i < allImgs.size(); i++)
-		{
-			synchronized(this)
-			{
-				if (!m_clsIndexMap.containsKey(allImgs.get(i).classId))
-					continue;
-				
-				sm.merge(allImgs.get(i).featureV, m_clsIndexMap.get(allImgs.get(i).classId));
-			}
-		}
-		
 		ImgFeatureComparator comp = new ImgFeatureComparator(featureV);
 		Collections.sort(allImgs, comp);
 		
@@ -313,9 +312,32 @@ public class EngineService
 		if (nNum > 0 && nNum < allImgs.size())
 			nRetNum = nNum;
 		
-		ArrayList<Long> retList = new ArrayList<Long>();
+		ArrayList<MedicalImage> closeList = new ArrayList<MedicalImage>();
 		for (int i = 0; i < nRetNum; i++)
-			retList.add(allImgs.get(i).imageId);
+			closeList.add(allImgs.get(i).clone());
+		
+		//Append semantic vector to input image
+		PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, ModelManager.WHOLE_DOMAIN_ID);
+		SemanticMerge sm = new SemanticMerge(ImgFeatureExtractionWrapper.TOTAL_DIM, m_nTotalClasses);
+		sm.merge(featureV, res);
+						
+		for (int i = 0; i < closeList.size(); i++)
+		{
+			synchronized(this)
+			{
+				if (!m_clsIndexMap.containsKey(closeList.get(i).classId))
+					continue;
+						
+				sm.merge(closeList.get(i).featureV, m_clsIndexMap.get(closeList.get(i).classId));
+			}
+		}
+		
+		comp = new ImgFeatureComparator(featureV);
+		Collections.sort(closeList, comp);
+		
+		ArrayList<Long> retList = new ArrayList<Long>();
+		for (int i = 0; i < closeList.size(); i++)
+			retList.add(i, closeList.get(i).imageId);
 		
 		return retList;
 	}

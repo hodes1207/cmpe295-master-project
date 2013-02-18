@@ -6,8 +6,6 @@ package datamining.libsvm;
 import java.io.*;
 import java.util.*;
 
-import datamining.liblinear.Linear;
-
 //
 // Kernel Cache
 //

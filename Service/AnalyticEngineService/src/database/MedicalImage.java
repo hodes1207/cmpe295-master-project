@@ -1,12 +1,18 @@
 package database;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 @JsonIgnoreProperties({"id", "revision", "_attachments"})
-public class MedicalImage {
+public class MedicalImage implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@JsonProperty("_id")
 	public String id;

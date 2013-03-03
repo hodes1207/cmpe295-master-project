@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DatabaseImport classDBName="classInfoTest" domainDBName = "domainInfoTest" medicalImageDBName = "medicalImageTest" DBUrl="http://localhost:5984">
+
+	<domain name="head">
+            	<class name="Train01">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train01</class>
+	      	<class name="Train02">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train02</class>
+		<class name="Train03">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train03</class>
+		<class name="Train24">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train24</class>
+		<class name="Train25">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train25</class>
+		<class name="Train26">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train26</class>
+		<class name="Train44">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train44</class>
+		<class name="Train45">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train45</class>
+		<class name="Train46">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train46</class>
+	</domain>
+
+	<domain name="body">
+              	<class name="Train04">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train04</class>
+		<class name="Train05">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train05</class>
+	      	<class name="Train14">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train14</class>
+		<class name="Train15">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train15</class>
+		<class name="Train16">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train16</class>
+		<class name="Train17">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train17</class>
+		<class name="Train27">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train27</class>
+		<class name="Train28">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train28</class>
+		<class name="Train39">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train39</class>
+		<class name="Train40">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train40</class>
+	</domain>
+
+</DatabaseImport>

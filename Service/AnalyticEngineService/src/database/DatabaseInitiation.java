@@ -28,8 +28,7 @@ import ServiceInterface.ModelManager;
 
 public class DatabaseInitiation 
 {
-	public static String xmlCfgFile = "C:\\" +
-			"cmpe295-master-project\\Service\\AnalyticEngineService\\db_ini.xml";
+	public static String xmlCfgFile = "testdb_ini.xml";
 
 	// domain id (domain index) to class ids
 	public static HashMap<Integer, Integer[]> domIdToClsId = new HashMap<Integer, Integer[]>();

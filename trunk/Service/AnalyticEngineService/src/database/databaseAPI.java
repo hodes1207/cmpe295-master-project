@@ -104,8 +104,12 @@ public class databaseAPI {
 	}
 
 	//bImgContent:to include byte[] or not
-	public ArrayList<MedicalImage> RetrieveImageList(int classId, boolean bImgContent)
+	public ArrayList<MedicalImage> RetrieveImageList(int classId, boolean bImgContent, 
+			String strExclusiveStartDocId, int limit)
 	{
+		if (limit <= 0)
+			return null;
+		
 		new MedicalImageRepository(dbConImg);
 		
 		int domainId = (classId >> 16);
@@ -117,7 +121,15 @@ public class databaseAPI {
 		
 		query.cacheOk(true);
 		
-		List<MedicalImage> imageList= dbConImg.queryView(query, MedicalImage.class);
+		if (strExclusiveStartDocId == null)
+			query.limit(limit);
+		else
+			query.limit(limit+1);
+
+		if (null != strExclusiveStartDocId)
+			query.startDocId(strExclusiveStartDocId);
+		
+		List<MedicalImage> imageList = dbConImg.queryView(query, MedicalImage.class);
 		
 		ArrayList<MedicalImage> medicalImageList = new ArrayList<MedicalImage>();
 		for(int i = 0; i < imageList.size(); i++)
@@ -127,6 +139,10 @@ public class databaseAPI {
 			    image.setImage(null);
 			medicalImageList.add(image);
 		}
+		
+		if (null != strExclusiveStartDocId)
+			medicalImageList.remove(0);
+		
 		return medicalImageList;
 	}
 

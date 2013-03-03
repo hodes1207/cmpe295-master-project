@@ -77,7 +77,7 @@ public class ImageRetrievalTest {
 		for (int i = 0; i < imgsInfo.size(); i++)
 		{
 			CLASSIFY_ENTITY ent = new CLASSIFY_ENTITY();
-			ent.strInfo = imgsInfo.get(i).strImgPath;
+			//ent.strInfo = imgsInfo.get(i).strImgPath;
 			ent.nClsId = imgsInfo.get(i).nClsId;
 			ent.vectors = new ArrayList<Double>(imgsInfo.get(i).features.length);
 			for (int k = 0; k < imgsInfo.get(i).features.length; k++)
@@ -107,7 +107,7 @@ public class ImageRetrievalTest {
 		ImgFeatureComparator comp = new ImgFeatureComparator(entInput);
 		Collections.sort(entities, comp);
 		
-		for (int i = 0; i < entities.size(); i++)
-			System.out.println(entities.get(i).strInfo);
+		/*for (int i = 0; i < entities.size(); i++)
+			System.out.println(entities.get(i).strInfo);*/
 	}
 }

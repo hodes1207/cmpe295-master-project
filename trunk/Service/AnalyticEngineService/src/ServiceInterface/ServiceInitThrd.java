@@ -43,7 +43,23 @@ public class ServiceInitThrd  extends Thread {
 			ArrayList<MedicalImage> imgs = new ArrayList<MedicalImage>();
 			for (int k = 0; k < clses.size(); k++)
 			{
-				imgs.addAll(databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false));
+				int limit = 2000;
+				String strStDocId = null;
+				while (true)
+				{
+					ArrayList<MedicalImage> tmpList = 
+							databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false, 
+							strStDocId, limit);
+					
+					if (null != tmpList && tmpList.size() > 0)
+						strStDocId = tmpList.get(tmpList.size()-1).id;
+					
+					imgs.addAll(tmpList);
+					if (tmpList.size() < limit)
+						break;
+					
+					tmpList = null;
+				}
 			}
 			
 			m_serv.addDomain(nDomainId);

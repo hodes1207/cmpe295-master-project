@@ -305,7 +305,7 @@ public class EngineService
 			}
 		}
 		
-		ImgFeatureComparator comp = new ImgFeatureComparator(featureV);
+		ImgFeatureComparator comp = new ImgFeatureComparator(featureV, false);
 		Collections.sort(allImgs, comp);
 		
 		int nRetNum = allImgs.size();
@@ -332,7 +332,7 @@ public class EngineService
 			}
 		}
 		
-		comp = new ImgFeatureComparator(featureV);
+		comp = new ImgFeatureComparator(featureV, false);
 		Collections.sort(closeList, comp);
 		
 		ArrayList<Long> retList = new ArrayList<Long>();
@@ -383,8 +383,6 @@ public class EngineService
 	}
 	/************************************************************************************/
 	
-	
-	
 	/************************  miscellaneous functions **********************************/
 	public void setInitialProgress(double dbProg) 
 	{ 
@@ -416,8 +414,6 @@ public class EngineService
 	
 	public void startService()
 	{
-		databaseAPI.getInstance().initDBInstance("domainInfoTest", "classInfoTest", 
-				"medicalImageTest", "http://localhost:5984");
 		ServiceInitThrd initThrd = new ServiceInitThrd(this);
 		initThrd.start();
 	}

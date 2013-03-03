@@ -8,9 +8,10 @@ import database.MedicalImage;
 
 public class ImgFeatureComparator implements Comparator<MedicalImage>
 {
-	public ImgFeatureComparator(ArrayList<Double> featureV)
+	public ImgFeatureComparator(ArrayList<Double> featureV, boolean bReverse)
 	{
 		vec = featureV;
+		bRevComp = bReverse;
 	}
 	
 	public int compare(MedicalImage a, MedicalImage b) 
@@ -18,10 +19,14 @@ public class ImgFeatureComparator implements Comparator<MedicalImage>
         double dbDist1 = calcDist(vec, a.featureV);
         double dbDist2 = calcDist(vec, b.featureV);
         
-        return dbDist1 < dbDist2 ? -1 : 1;
+        int res = dbDist1 < dbDist2 ? -1 : 1;
+        if (bRevComp)
+        	res = res <= 0 ? 1 : -1;
+        
+        return res;
 	}
 	
-	double calcDist(ArrayList<Double> a, ArrayList<Double> b)
+	public static double calcDist(ArrayList<Double> a, ArrayList<Double> b)
 	{
 		if (a.size() != b.size())
 			return Double.MAX_VALUE;
@@ -35,4 +40,5 @@ public class ImgFeatureComparator implements Comparator<MedicalImage>
 	}
 	
 	private ArrayList<Double> vec;
+	private boolean bRevComp = false;
 }

@@ -8,6 +8,7 @@ public enum MsgId {
         GET_IMAGE,  // Retrieve Image
         DEL_IMAGE,  // Delete Image
         ADD_IMAGE,  // Add Image
+        GET_PICID,  // Get pic id
         
         // Classification 
         ADD_DOMAIN, // Add Domain
@@ -34,5 +35,5 @@ public enum MsgId {
         // Recommendation API
         SEARCH_SIM, // Similarity search
         GET_CLEST,  // Classification estimation       
-        
+        GET_PROG,   // Get progress
 }

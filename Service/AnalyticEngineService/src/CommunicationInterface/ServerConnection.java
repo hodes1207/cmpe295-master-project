@@ -37,7 +37,8 @@ public class ServerConnection implements Serializable {
 		}
 		
 		output.writeObject(query);
-		
+		output.flush();
+		output.reset();
 	}
 	
 	// Get the message object from the server.
@@ -46,6 +47,7 @@ public class ServerConnection implements Serializable {
 	    
 	    try {
 	    result = (MessageObject) input.readObject();
+	  //  input.reset();
 	    return result;
 	    } catch (ClassNotFoundException classNot) {
 	    	System.out.println("ERROR execption classnotfound");

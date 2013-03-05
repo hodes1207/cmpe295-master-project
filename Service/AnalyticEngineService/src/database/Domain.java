@@ -1,10 +1,11 @@
 package database;
 
+import java.io.*;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 @JsonIgnoreProperties({"id", "revision"})
-public class Domain {
+public class Domain implements Serializable {
 
 	@JsonProperty("_id")
 	public String id;

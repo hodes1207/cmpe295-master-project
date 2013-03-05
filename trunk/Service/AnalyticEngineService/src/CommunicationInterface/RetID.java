@@ -6,7 +6,11 @@ public enum RetID {
       // Query result value type
       LONG_LIST, // ArrayList<Long>
       DOMAIN_LIST, // ArrayList<Domain>
+      CLASS_LIST,  // ArrayList<SecondLevelClass>
       BYTES,     // byte[]
       STRING,    // String
-      LONG       // long
+      LONG,      // long
+      BOOL,       // boolean value
+      INT,        // int value
+      DOUBLE      // Double
 }

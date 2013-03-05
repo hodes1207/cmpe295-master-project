@@ -12,17 +12,27 @@ import java.io.*;
  */
 public class MessageObject implements Serializable {
 	
+	// The clientid is unique to every client connection and is used to
+	// identify multiple client connections.
+	private static int clientid = new Random().hashCode();
 	public long len;
 	public MsgId qtype;
 	public ArrayList<Long> longlist;
 	public ArrayList<Domain> domlist;
+	public ArrayList<SecondLevelClass> slclist;
 	public byte[] retbyte;
 	public String sval;
 	public RetID rtype;
 	public int domid;
+	public int classid;
+	public int maxsamples;
+	public long imageid;
+	public boolean bval;
+	public int ival;
+	public double dval;
+	public double rbf_c, rbf_g;
 	
-
-
+	
 
 
 	/**
@@ -47,6 +57,14 @@ public class MessageObject implements Serializable {
 		this.rtype = RetID.INVALID;
 	}
 	
+	public void setclassid(int id) {
+		classid = id;
+	}
+	
+	public int getclassid() {
+		return classid;
+	}
+	
 	public void setlen (long l) {
 		len = l;
 	}
@@ -63,8 +81,20 @@ public class MessageObject implements Serializable {
 		return len;
 	} 
 	
+	public long getimageid() {
+		return imageid;
+	}
+	
+	public void setimageid(long id) {
+		imageid = id;
+	}
+	
 	public ArrayList<Long> getlist () {
 		return longlist;
+	}
+	
+	public void setlist (ArrayList<Long> l) {
+		longlist = l;
 	}
 	
 	public ArrayList<Domain> getdomlist () {
@@ -82,8 +112,19 @@ public class MessageObject implements Serializable {
 	public void setdomid (int id) {
 		domid = id;
 	}
+	public int getmaxsample () {
+		return maxsamples;
+	}
+	
+	public void setmaxsample (int id) {
+		maxsamples = id;
+	}
 	public byte[] getbytes () {
 		return retbyte;
+	}
+	
+	public void setbytes(byte[] inbyte) {
+		retbyte = inbyte;
 	}
 	
 	public String getstring() {
@@ -104,5 +145,57 @@ public class MessageObject implements Serializable {
 	
 	public void setStrval (String val) {
 		sval = val;
+	}
+	
+	public boolean getboolval () {
+		return bval;
+	}
+	
+	public void setboolval(boolean b) {
+		bval = b;
+	}
+	
+	public int getintval() {
+		return ival;
+	}
+	
+	public void setintval (int i) {
+		ival = i;
+	}
+	
+	public void setslclist (ArrayList<SecondLevelClass> list) {
+		slclist = list;
+	}
+	
+	public ArrayList<SecondLevelClass> getslclist() {
+		return slclist;
+	}
+	
+	public void setc (double c) {
+		rbf_c = c;
+	}
+	
+	public void setg (double g) {
+		rbf_g = g;
+	}
+	
+	public double getc () {
+		return rbf_c;
+	}
+	
+	public double getg () {
+		return rbf_g;
+	}
+	
+	public double getdval() {
+		return dval;
+	}
+	
+	public void setdval(double d) {
+		dval = d;
+	}
+	
+	public int getclientid() {
+		return clientid;
 	}
 }

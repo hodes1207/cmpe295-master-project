@@ -1,6 +1,7 @@
 package database;
+import java.io.*;
 
-public class MedicalParameter {
+public class MedicalParameter implements Serializable {
 
 	public boolean bRBF;
 	public double dbRBF_c;

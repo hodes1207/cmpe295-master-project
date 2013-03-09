@@ -262,13 +262,32 @@ public class EngineService
 		return true;
 	}
 	
+	public boolean isTrainingFinished(int nDomainId)
+	{
+		return m_modelMgr.isTrainingFinished(nDomainId);
+	}
+	
 	public boolean enableRBFTuning(int nDomainId)
 	{
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
+		if (null == param)
+			return false;
+		
+		param.bRBF = true;
+		databaseAPI.getInstance().setModelParameter(nDomainId, param);
+		
 		return m_modelMgr.enableRBFTuning(nDomainId);
 	}
 	
 	public boolean disableRBFTuning(int nDomainId)
 	{
+		MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
+		if (null == param)
+			return false;
+		
+		param.bRBF = false;
+		databaseAPI.getInstance().setModelParameter(nDomainId, param);
+		
 		return m_modelMgr.disableRBFTuning(nDomainId);
 	}
 	

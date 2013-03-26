@@ -32,7 +32,7 @@ public class databaseAPI {
 		HttpClient httpClient;
 		
 		try {
-			httpClient = new StdHttpClient.Builder().url(DBUrl).build();
+			httpClient = new StdHttpClient.Builder().connectionTimeout(100000).socketTimeout(100000).url(DBUrl).build();
 	        dbInstance = new StdCouchDbInstance(httpClient);
 	        
 	        getDomDBConnection();

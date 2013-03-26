@@ -31,7 +31,6 @@
 <fullyQualifiedTypeName name="java.io.Serializable"/>
 <fullyQualifiedTypeName name="MessageLayer.ImgRetrieveInitMsg"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
-<fullyQualifiedTypeName name="java.net.Socket"/>
 <fullyQualifiedTypeName name="java.net.ServerSocket"/>
 <fullyQualifiedTypeName name="java.nio.channels.ServerSocketChannel"/>
 <fullyQualifiedTypeName name="java.net.InetSocketAddress"/>
@@ -39,7 +38,6 @@
 <fullyQualifiedTypeName name="java.nio.channels.SelectionKey"/>
 <fullyQualifiedTypeName name="java.nio.channels.SocketChannel"/>
 <fullyQualifiedTypeName name="java.nio.channels.Channel"/>
-<fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="ServiceServer.ServiceServer"/>
 <fullyQualifiedTypeName name="ImgRetrieveServer.ImgServerMsgThrd"/>
 <fullyQualifiedTypeName name="java.util.concurrent.locks.Condition"/>
@@ -55,4 +53,10 @@
 <fullyQualifiedTypeName name="java.util.concurrent.CountDownLatch"/>
 <fullyQualifiedTypeName name="java.util.Date"/>
 <fullyQualifiedTypeName name="java.util.concurrent.TimeUnit"/>
+<fullyQualifiedTypeName name="MessageLayer.CommunicationAPI"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="database.SecondLevelClass"/>
+<fullyQualifiedTypeName name="database.Domain"/>
+<fullyQualifiedTypeName name="java.net.Socket"/>
+<fullyQualifiedTypeName name="MessageLayer.MessageObject"/>
 </qualifiedTypeNameHistroy>

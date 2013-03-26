@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
+	<item value="2" key="TypeHierarchyViewPart.hierarchyview"/>
 	<item value="C:\Users\yhx176781066\Desktop\Master Project\cmpe295-master-project\bin" key="org.eclipse.jdt.ui.lastextjar"/>
+	<item value="false" key="TypeHierarchyViewPart.qualifiednames"/>
+	<item value="3" key="TypeHierarchyViewPart.orientation"/>
+	<item value="false" key="TypeHierarchyViewPart.linkeditors"/>
 	<section name="OptionalMessageDialog.hide.">
 		<item value="true" key="org.eclipse.jdt.ui.typecomment.deprecated"/>
 	</section>
@@ -40,9 +44,25 @@
 		<item value="false" key="jarOptionsWizardPage.STORE_USE_SRC_FOLDERS"/>
 		<item value="" key="jarOptionsWizardPage.DESCRIPTION_LOCATION"/>
 		<list key="JarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="..\bin\Servers.jar"/>
+			<item value="..\bin\yhx.jar"/>
 			<item value="..\bin\databaseAPI.jar"/>
 			<item value="..\Service\AnalyticEngineService\CoreAlgorithm.jar"/>
 			<item value="../Service/AnalyticEngineService/CoreAlgorithm.jar"/>
+		</list>
+	</section>
+	<section name="FatJarPackageWizard">
+		<item value="C:\Users\yhx176781066\Desktop\Master Project\cmpe295-master-project\bin\Servers.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
+		<item value="MainServer - AnalyticEngineService" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
+		<item value="C:\Users\yhx176781066\Desktop\Master Project\cmpe295-master-project\Service" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
+		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
+		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
+		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Users\yhx176781066\Desktop\Master Project\cmpe295-master-project\bin\Servers.jar"/>
+		</list>
+		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">
+			<item value="C:\Users\yhx176781066\Desktop\Master Project\cmpe295-master-project\Service.xml"/>
+			<item value=".xml"/>
 		</list>
 	</section>
 	<section name="NewClassWizardPage">

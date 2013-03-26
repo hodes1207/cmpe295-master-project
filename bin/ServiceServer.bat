@@ -1,0 +1,1 @@
+java -cp Servers.jar ServiceServer.MainServer

@@ -1,1 +1,1 @@
-java -cp Servers.jar ServiceServer.MainServer
+java -cp Servers.jar ServiceServer.MainServer ServiceServ_ini.xml

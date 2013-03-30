@@ -306,19 +306,19 @@ public class ImgRetrievalService {
 		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
 		ImgFeatureExtractionWrapper.extractFeature(byteImg, vectors);
 			
+		java.util.Random ran = new java.util.Random();
+		KNNsearchMsg msg = new KNNsearchMsg();
+		msg.feature = vectors;
+		msg.k = nNum;
+		msg.msgId = ran.nextInt();
+			
+		ReqInfo info = new ReqInfo();
+		info.out = out;
+		info.time = new Date();
+		info.soc = soc;
+		
 		synchronized(this)
 		{
-			java.util.Random ran = new java.util.Random();
-			KNNsearchMsg msg = new KNNsearchMsg();
-			msg.feature = vectors;
-			msg.k = nNum;
-			msg.msgId = ran.nextInt();
-			
-			ReqInfo info = new ReqInfo();
-			info.out = out;
-			info.time = new Date();
-			info.soc = soc;
-			
 			pendingMsg.put(msg.msgId, info);
 			
 			Iterator<Integer> iterator = imgServers.keySet().iterator();

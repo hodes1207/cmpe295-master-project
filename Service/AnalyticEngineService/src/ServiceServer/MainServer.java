@@ -21,21 +21,72 @@ public class MainServer {
 
 	private static int PORT = 6753; 
 	private static EngineService serv = new EngineService();
+	
+	private static HashSet<Handler> thrds = new HashSet<Handler>();
+	
+	private static class ExitTrigger extends Thread 
+	{
+		public ExitTrigger(EngineService server)
+		{
+			m_serv = server;
+		}
+		
+	    public void run() 
+	    {
+	         System.out.println("Image server shutting down ....");
+	         m_serv.shutdownServer();
+	    }
+	    
+	    private EngineService m_serv = null;
+	    
+	 }
     
     public static void main(String[] args) throws Exception {  
     	
-      initServer("ServiceServ_ini.xml");
+      Runtime.getRuntime().addShutdownHook(new ExitTrigger(serv));
+    	
+      String strCfgFile = "ServiceServ_ini.xml";
+      if (args.length > 0)
+    	  strCfgFile = args[0];
+    	
+      initServer(strCfgFile);
 
       ServerSocket listener = new ServerSocket(PORT, 10);    
       System.out.println("The image processing server is listening on port " + PORT);    
+      
       try {           
-    	      while (true) {       
-    	    	 new Handler(listener.accept()).start();      
+    	      while (!listener.isClosed()) 
+    	      {       
+    	    	  Handler thrd = new Handler(listener.accept());   
+    	    	  
+    	    	  Iterator<Handler> it = thrds.iterator();
+    	    	  while (it.hasNext())
+    	    	  {
+    	    		  Handler hd = it.next();
+    	    		  if (!hd.isAlive())
+    	    			  it.remove();
+    	    	  }
+    	    	  
+    	    	  thrd.start();
+    	    	  thrds.add(thrd);
     	      }      
-      } finally {         
-    	      listener.close();     
-      }   
-    } // main
+      }
+      catch (IOException e) { }
+      
+      Iterator<Handler> it = thrds.iterator();
+      while (it.hasNext())
+	  {
+		  Handler hd = it.next();
+		  hd.stopThrd();
+	  }
+      
+      it = thrds.iterator();
+      while (it.hasNext())
+	  {
+		  Handler hd = it.next();
+		  hd.join();
+	  }
+    } 
     
     private static void initServer(String xmlCfgFile) 
     		throws ParserConfigurationException, SAXException, IOException, InterruptedException
@@ -76,12 +127,21 @@ public class MainServer {
     	private ObjectInputStream in;       
     	private ObjectOutputStream out;
     	private MessageObject result;
+    	private boolean bExit = false;
     	
         public Handler(Socket socket) {      
         	this.socket = socket;   
         }
         
-        public void run() {   
+        public void stopThrd() 
+        {
+        	bExit = true;
+        	try {
+				socket.close();
+			} catch (IOException e) { }
+		}
+
+		public void run() {   
         	try {  
         		// Create character streams for the socket.   
         		   System.out.println("Received client connection");
@@ -90,7 +150,7 @@ public class MainServer {
         	       out = new ObjectOutputStream(socket.getOutputStream());
         	      // EngineService serv = new EngineService();
         	       
-        	       while (true) {
+        	       while (!bExit) {
         	    	   try {
         	    	           MessageObject req = (MessageObject) (in.readObject());
         	    	           if (req == null) {

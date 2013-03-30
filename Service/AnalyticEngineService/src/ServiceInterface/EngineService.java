@@ -472,6 +472,11 @@ public class EngineService
 			}
 		}
 	}
+
+	public void shutdownServer() 
+	{
+		
+	}
 	
 	//================== Member variables ==================================
 	

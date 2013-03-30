@@ -244,6 +244,27 @@ public class ImgRetrieveServer {
 		
 		return res;
 	}
+	
+	public void shutdownServer()
+	{
+		try {
+			soc.close();
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		bStopWorker = true;
+		
+		// wait for threads to end
+		try {
+			workThrd.join();
+			reloadThrd.join();
+		} 
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 
 	String xmlcfgfile = "";
 	private ArrayList<MedicalImage> imgs = new ArrayList<MedicalImage>();

@@ -3,6 +3,7 @@ package ServiceInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import database.MedicalParameter;
 import datamining.CLASSIFY_ENTITY;
 import datamining.ClassifyModel;
 import datamining.PROB_ESTIMATION_RES;
@@ -20,7 +21,7 @@ public class ModelManager {
 		}
 	}
 	
-	String getModelInfo(int nDomainId)
+	MedicalParameter getModelInfo(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -28,9 +29,24 @@ public class ModelManager {
 				return m_wholeModel.getModelInfo();
 			
 			if (!m_domainModels.containsKey(nDomainId))
-				return "";
+				return null;
 			
 			return m_domainModels.get(nDomainId).getModelInfo();
+		}
+	}
+	
+	//getModelAccuracy
+	double getModelAccuracy(int nDomainId)
+	{
+		synchronized(this)
+		{
+			if (nDomainId == WHOLE_DOMAIN_ID)
+				return m_wholeModel.getModelAccuracy();
+			
+			if (!m_domainModels.containsKey(nDomainId))
+				return -1.0;
+			
+			return m_domainModels.get(nDomainId).getModelAccuracy();
 		}
 	}
 	
@@ -50,13 +66,14 @@ public class ModelManager {
 			if (bRBF)
 			{
 				model.useRBF();
-				model.setRBFInfo(rbfc, rbfg);
 			}
 			else 
 			{
 				model.useLinear();
-				model.setLinearInfo(linearc);
 			}
+			
+			model.setRBFInfo(rbfc, rbfg);
+			model.setLinearInfo(linearc);
 		}
 		
 		return true;

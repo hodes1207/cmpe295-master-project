@@ -12,5 +12,6 @@ public enum RetID {
       LONG,      // long
       BOOL,       // boolean value
       INT,        // int value
-      DOUBLE      // Double
+      DOUBLE,      // Double
+      MOD_INFO
 }

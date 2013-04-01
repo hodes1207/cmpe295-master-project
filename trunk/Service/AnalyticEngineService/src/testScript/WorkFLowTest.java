@@ -3,6 +3,7 @@ package testScript;
 import java.util.ArrayList;
 
 import database.Domain;
+import database.MedicalParameter;
 import database.SecondLevelClass;
 
 import ServiceInterface.EngineService;;
@@ -32,9 +33,9 @@ public class WorkFLowTest {
 			//boolean bRes = serv.DeleteImg((1<<16)+1, testId);
 			//bRes = serv.AddImg((1<<16)+1, testId, content);
 			
-			ArrayList<Long> res = serv.SimilaritySearch(content, 100);
-			for (int i = 0; i < res.size(); i++)
-				System.out.println(res.get(i));
+			//ArrayList<Long> res = serv.SimilaritySearch(content, 100);
+			//for (int i = 0; i < res.size(); i++)
+			//	System.out.println(res.get(i));
 			
 			//String clsRes = serv.classificationEstimation(content, 1);
 			//System.out.println(clsRes);
@@ -43,8 +44,9 @@ public class WorkFLowTest {
 			serv.SetAutoTuningFoldNum(-1, 6);
 			int nNum = serv.GetAutoTuningFoldNum(-1);
 			double dbp = serv.getAutoTuningProgress(-1);
-			String strInfo = serv.getAutoTuningInfo(-1);
-			strInfo = serv.GetCurrentModelInfo(-1);*/
+			String strInfo = serv.getAutoTuningInfo(-1);*/
+			MedicalParameter strInfo = serv.GetCurrentModelInfo(-1);
+			double dbacu = serv.GetCurrentModelAccuracy(-1);
 			serv.SetLinearKernelParam(-1, 0.03124, 3000);
 			
 			serv.StartAutoTuning(-1);

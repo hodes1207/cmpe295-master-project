@@ -262,15 +262,20 @@ public class MainServer {
         	    	              req.setdval(gap);
         	    	              req.setrettype(RetID.DOUBLE);
         	    	              break;
+        	    case GET_CMA:
+				  	              double cma = serv.GetCurrentModelAccuracy(req.getdomid());
+				  	              req.setdval(cma);
+				  	              req.setrettype(RetID.DOUBLE);
+				  	              break;
         	    case GET_ATI:
         	    	              String gati = serv.getAutoTuningInfo(req.getdomid());
         	    	              req.setStrval(gati);
         	    	              req.setrettype(RetID.STRING);
         	    	              break;
         	    case GET_CMI:
-        	    	              String gcmi = serv.GetCurrentModelInfo(req.getdomid());
-        	    	              req.setStrval(gcmi);
-        	    	              req.setrettype(RetID.STRING);
+        	    				  MedicalParameter gcmi = serv.GetCurrentModelInfo(req.getdomid());
+        	    	              req.setmodinfo(gcmi);
+        	    	              req.setrettype(RetID.MOD_INFO);
         	    	              break;
         	    case START_TUNE:
         	    	              boolean st = serv.StartAutoTuning(req.getdomid());

@@ -6,7 +6,6 @@
 <fullyQualifiedTypeName name="java.util.Map"/>
 <fullyQualifiedTypeName name="datamining.PROB_ESTIMATION_RES"/>
 <fullyQualifiedTypeName name="database.MedicalImage"/>
-<fullyQualifiedTypeName name="database.MedicalParameter"/>
 <fullyQualifiedTypeName name="PCA.DataReader"/>
 <fullyQualifiedTypeName name="datamining.ModelParameter"/>
 <fullyQualifiedTypeName name="javax.xml.parsers.DocumentBuilderFactory"/>
@@ -59,4 +58,5 @@
 <fullyQualifiedTypeName name="database.Domain"/>
 <fullyQualifiedTypeName name="java.net.Socket"/>
 <fullyQualifiedTypeName name="MessageLayer.MessageObject"/>
+<fullyQualifiedTypeName name="database.MedicalParameter"/>
 </qualifiedTypeNameHistroy>

@@ -31,7 +31,7 @@ public class MessageObject implements Serializable {
 	public int ival;
 	public double dval;
 	public double rbf_c, rbf_g;
-	
+	public MedicalParameter modInfo;
 	
 
 
@@ -55,6 +55,14 @@ public class MessageObject implements Serializable {
 		this.qtype = MsgId.UNINIT;
 		this.len = 0;
 		this.rtype = RetID.INVALID;
+	}
+	
+	public void setmodinfo(MedicalParameter info) {
+		modInfo = info;
+	}
+	
+	public MedicalParameter getmodelinfo() {
+		return modInfo;
 	}
 	
 	public void setclassid(int id) {

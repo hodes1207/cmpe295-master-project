@@ -311,6 +311,29 @@ public class CommunicationAPI {
 			
 		}
 		
+		public double getModelAccuracy(int nDomainId)
+		{
+			double res = 0.0;
+            query.settype(MsgId.GET_CMA);
+            query.setdomid(nDomainId);
+            query.setrettype(RetID.INVALID);
+			
+			try {
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			     
+			     if (result.getrettype() == RetID.DOUBLE) {
+			    	 res = result.getdval();
+			     }
+			} catch (IOException e) {
+	
+				HandleException(e, MsgId.GET_CMA);
+			}
+			
+			return res;
+			
+		}
+		
 		public String getAutoTuningInfo(int nDomainId)
 		{
 			String res =  null;
@@ -336,24 +359,24 @@ public class CommunicationAPI {
 		}
 		
 		//not in the auto tuning process
-		public String GetCurrentModelInfo(int nDomainId)
+		public MedicalParameter GetCurrentModelInfo(int nDomainId)
 		{
-			String res =  null;
+			MedicalParameter res =  null;
             query.settype(MsgId.GET_CMI);
             query.setdomid(nDomainId);
-            query.setStrval(null);
+            query.setmodinfo(null);
             query.setrettype(RetID.INVALID);
 			
 			try {
 			     scon.sendmsg(query);
 			     MessageObject result = (MessageObject) scon.getmsg(query);
 			     
-			     if (result.getrettype() == RetID.STRING) {
-			    	 res = result.getStrVal();
+			     if (result.getrettype() == RetID.MOD_INFO) {
+			    	 res = result.getmodelinfo();
 			     }
 			} catch (IOException e) {
 		
-				HandleException(e, MsgId.GET_ATP);
+				HandleException(e, MsgId.GET_CMI);
 			}
 			
 			return res;

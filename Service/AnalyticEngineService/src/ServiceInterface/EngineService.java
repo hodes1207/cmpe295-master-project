@@ -159,9 +159,14 @@ public class EngineService
 	}
 	
 	//not in the auto tuning process
-	public String GetCurrentModelInfo(int nDomainId)
+	public MedicalParameter GetCurrentModelInfo(int nDomainId)
 	{
 		return m_modelMgr.getModelInfo(nDomainId);
+	}
+	
+	public double GetCurrentModelAccuracy(int nDomainId)
+	{
+		return m_modelMgr.getModelAccuracy(nDomainId);
 	}
 	
 	/*void stopTraining(int nDomainId)

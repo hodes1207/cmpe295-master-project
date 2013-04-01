@@ -3,6 +3,8 @@ package datamining;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import database.MedicalParameter;
+
 public class ClassifyModel {
 
 	public void setRBFInfo(double dbC, double dbG)
@@ -224,41 +226,16 @@ public class ClassifyModel {
 		return res;
 	}
 	
-	public String getModelInfo()
+	public MedicalParameter getModelInfo()
 	{
-		String strInfo = "";
-		if (m_bRBF)
-		{
-			strInfo += "Model is using RBF kernel \n";
-			
-			strInfo += "Parameter C: ";
-			strInfo += Double.toString(m_dbRBF_C);
-			strInfo += "  \n";
-			
-			strInfo += "Parameter G: ";
-			strInfo += Double.toString(m_dbRBF_G);
-			strInfo += "  \n";
-		}
-		else
-		{
-			strInfo += "Model is using lieanr kernel \n";
-			
-			strInfo += "Parameter C: ";
-			strInfo += Double.toString(m_dbLinear_C);
-			strInfo += "  \n";
-		}
+		MedicalParameter param = new MedicalParameter();
 		
-		if (m_dbCurAccuracy < 0.0)
-			strInfo += "Model accuracy has not been evaluate. \n";
-		else
-		{
-			strInfo += "Model accuracy: ";
-			strInfo += Double.toString(m_dbCurAccuracy*100);
-			strInfo += " percent";
-			strInfo += "  \n";
-		}
+		param.bRBF = true;
+		param.dbRBF_c = m_dbRBF_C;
+		param.dbRBF_g = m_dbRBF_G;
+		param.dbLinear_c = m_dbLinear_C;
 		
-		return strInfo;
+		return param;
 	}
 	
 	public double crossValidation(ArrayList<CLASSIFY_ENTITY> dataset)
@@ -268,6 +245,11 @@ public class ClassifyModel {
 		
 		m_dbCurAccuracy = m_pModel.CrossValidation(dataset);
 		
+		return m_dbCurAccuracy;
+	}
+	
+	public double getModelAccuracy()
+	{
 		return m_dbCurAccuracy;
 	}
 	

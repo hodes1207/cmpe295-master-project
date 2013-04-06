@@ -212,7 +212,8 @@ public class ImgRetrievalService {
 						{
 							int nId = iterator.next();
 							
-							if (timenow.getTime() - pendingMsg.get(nId).time.getTime() > 60*1000*2)
+							//20 second time out
+							if (timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*20)
 							{
 								// request time out
 								iterator.remove();
@@ -278,7 +279,7 @@ public class ImgRetrievalService {
 									pendingMsg.remove(nId);
 								}
 								
-								System.out.println("Merged .......");
+								System.out.println("Image retrieval result merged and sent.......");
 								break;
 							}
 						}

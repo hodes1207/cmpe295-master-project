@@ -198,7 +198,7 @@ public class MainServer {
         	// But be careful not to overwrite the fields by mistake.
         	
 
-        	//System.out.println("Processing "+ req.gettype() + " request from client " + req.getclientid());
+        	System.out.println("Processing "+ req.gettype() + " request from client " + req.getclientid());
         	// req.setrettype(RetID.INVALID);
         	
         	switch (req.gettype()) {

@@ -116,16 +116,16 @@ public class ImgRetrieveServer {
 				norm.normalizeVector(imgs.get(i).featureV);
 			}
 		} 
-		catch (ParserConfigurationException | SAXException | IOException e1) 
+		catch ( Exception e1) //ParserConfigurationException | SAXException | IOException
 		{
 			//e1.printStackTrace();
 			return false;
-		} 
+		} /*
 		catch (ClassNotFoundException e) 
 		{
 			//e.printStackTrace();
 			return false;
-		}
+		} */
 		
 		return true;
 	}

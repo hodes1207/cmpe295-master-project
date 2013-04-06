@@ -85,7 +85,7 @@ public class DatabaseInitiation
 				}
 			}
 		} 
-		catch (ParserConfigurationException | SAXException | IOException e1) 
+		catch ( Exception e1) //ParserConfigurationException | SAXException | IOException
 		{
 			e1.printStackTrace();
 			return false;

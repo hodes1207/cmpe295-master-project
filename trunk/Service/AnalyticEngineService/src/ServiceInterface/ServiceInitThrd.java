@@ -22,8 +22,8 @@ public class ServiceInitThrd  extends Thread {
 		ArrayList<CLASSIFY_ENTITY> allImgs = new ArrayList<CLASSIFY_ENTITY>();
 		
 		//build individual model
-		/*databaseAPI.getInstance().initDBInstance("domainInfoTest", "classInfoTest",
-				"medicalImageTest", "http://localhost:5984");*/
+		databaseAPI.getInstance().initDBInstance("domainInfoTest", "classInfoTest",
+				"medicalImageTest", "http://localhost:5984");
 		ArrayList<Domain> domains = databaseAPI.getInstance().getDomain();
 		double dbStep = 1.0/(1 + domains.size());
 		

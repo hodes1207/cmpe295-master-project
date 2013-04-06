@@ -159,7 +159,7 @@ public class ImgRetrievalService {
 							imgConV.signal();
 							imgLock.unlock();
 						} 
-						catch (IOException | ClassNotFoundException e) 
+						catch ( Exception e) //IOException | ClassNotFoundException
 						{
 							sc.close();
 							removeSocket(sc);

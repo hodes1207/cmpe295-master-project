@@ -30,6 +30,7 @@ public class WorkFLowTest {
 			ArrayList<Long> ids = serv.GetPicId((1<<16)+1);
 			Long testId = ids.get(0);
 			byte[] content = serv.RetrieveImg(testId);
+			
 			//boolean bRes = serv.DeleteImg((1<<16)+1, testId);
 			//bRes = serv.AddImg((1<<16)+1, testId, content);
 			

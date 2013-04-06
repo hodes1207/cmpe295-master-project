@@ -19,11 +19,18 @@ public class ServiceServerTest {
 		ArrayList<SecondLevelClass> clses = comAPI.GetClasses(0);
 		ArrayList<Long> picIds = comAPI.GetPicId((1 << 16) + 1);
 
+		for(int i = 0; i < picIds.size(); i++)
+		{
+			byte[] content = comAPI.RetrieveImg(picIds.get(0));
+			System.out.println("content "+i+": "+content);
+		}
+		
+		
 		byte[] content = comAPI.RetrieveImg(picIds.get(0));
 		
 		double dbTmp = comAPI.getModelAccuracy(1);
 		String info = comAPI.classificationEstimation(content, 1);
-		//picIds = comAPI.SimilaritySearch(content, 200);
+		picIds = comAPI.SimilaritySearch(content, 1);
 		
 		boolean b = comAPI.AddImg((1 << 16) + 1, 1234567, content);
 		b = comAPI.DeleteImg((1 << 16) + 1, 1234567);

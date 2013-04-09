@@ -7,6 +7,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -17,21 +20,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
+import MessageLayer.ClassifyResp;
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
+import MessageLayer.ImgServMsg;
 import MessageLayer.KNNSearchResp;
-import MessageLayer.KNNsearchMsg;
 import ServiceInterface.ImgFeatureComparator;
 import ServiceInterface.ModelManager;
 
 import database.*;
+import datamining.CLASSIFY_ENTITY;
 import datamining.Normalizer;
+import datamining.PROB_ESTIMATION_RES;
 
 public class ImgRetrieveServer {
 	
@@ -62,68 +66,82 @@ public class ImgRetrieveServer {
 			reloadhours = Integer.parseInt(root.getAttribute("reloadhours"));
 			int port = Integer.parseInt(root.getAttribute("port"));
 			
-			databaseAPI.getInstance().initDBInstance(domainDBName, classDBName, 
-					medicalImageDBName, DBUrl);
-			
-			ArrayList<SecondLevelClass> clses = databaseAPI.getInstance().getClass(ModelManager.WHOLE_DOMAIN_ID);
-			
 			//setup connection to service
 			soc = new Socket(strIP, port);
-			System.out.println("Connected");
+			System.out.print("Connected on index : ");
 			
 			ObjectInputStream socIn = new ObjectInputStream(soc.getInputStream());
-			ImgRetrieveInitMsg initMsg = (ImgRetrieveInitMsg)socIn.readObject();
-			
-			//get total machine  
+			ImgRetrieveInitMsg initMsg = (ImgRetrieveInitMsg)socIn.readObject();  
 			totalMachines = initMsg.totalMachines;
 			curIndex = initMsg.curIndex;
-			
 			System.out.println(curIndex);
 			
-			for (int i = 0; i < clses.size(); i++)
+			//Start loading data from database
+			databaseAPI.getInstance().initDBInstance(domainDBName, classDBName, 
+					medicalImageDBName, DBUrl);
+			ArrayList<Domain> domains = databaseAPI.getInstance().getDomain();
+			
+			ArrayList<CLASSIFY_ENTITY> allClsEnt = new ArrayList<CLASSIFY_ENTITY>();
+			
+			//Load data from database
+			System.out.println("Loading data from database ....");
+			for (int i = 0; i < domains.size(); i++)
 			{
-				int clsId = clses.get(i).classId;
-				int limit = 2000;
-				String strStDocId = null;
+				int nDomainId = domains.get(i).domainId;
+				if (nDomainId == ModelManager.WHOLE_DOMAIN_ID)
+					continue;
 				
-				while (true)
+				ArrayList<MedicalImage> imgs = loadDomainImgs(nDomainId);
+				
+				m_modelMgr.addDomain(nDomainId);
+				allImgs.addAll(imgs);
+				
+				ArrayList<CLASSIFY_ENTITY> clsEnt = new ArrayList<CLASSIFY_ENTITY>();
+				for (int j = 0; j < imgs.size(); j++)
 				{
-					ArrayList<MedicalImage> tmpList = 
-							databaseAPI.getInstance().RetrieveImageList(clsId, false, strStDocId, limit);
-						
-					if (null != tmpList && tmpList.size() > 0)
-						strStDocId = tmpList.get(tmpList.size()-1).id;
-				
-					for (int j = 0; j < tmpList.size(); j++)
-					{
-						norm.InitialScan(tmpList.get(j).featureV);
-						
-						int a = (int) tmpList.get(j).imageId;
-						int b = (a << 16) + (a >> 16);
-						
-						if (Math.abs(a^b)%totalMachines == curIndex)
-						{
-							imgs.add(tmpList.get(j).clone());
-						}
-					}
-					
-					if (tmpList.size() < limit)
-						break;
-						
-					tmpList = null;
-					System.gc();
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					CLASSIFY_ENTITY e = new CLASSIFY_ENTITY();
+					e.nClsId = imgs.get(j).classId;
+					e.vectors = imgs.get(j).featureV;
+					clsEnt.add(e);
+					allClsEnt.add(e);
 				}
+				
+				mpDom2DataSet.put(nDomainId, clsEnt);
 			}
 			
-			for (int i = 0; i < imgs.size(); i++)
+			System.out.println("Normalizing image data ....");
+			
+			for (int i = 0; i < allImgs.size(); i++)
 			{
-				norm.normalizeVector(imgs.get(i).featureV);
+				norm.normalizeVector(allImgs.get(i).featureV);
 			}
+			
+			for (int i = 0; i < domains.size(); i++)
+			{
+				int nDomainId = domains.get(i).domainId;
+				if (nDomainId == ModelManager.WHOLE_DOMAIN_ID)
+					continue;
+				
+				MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
+				if (param == null)
+					continue;
+				
+				//set model parameters
+				System.out.println("Training domain model .....");
+				m_modelMgr.setModelParameter(nDomainId, param.bRBF, param.dbRBF_c, param.dbRBF_g, param.dbLinear_c);
+				m_modelMgr.initialBuildModel(nDomainId, mpDom2DataSet.get(nDomainId));
+			}
+			
+			//build the whole model
+			System.out.println("Training whole model .....");
+			MedicalParameter param = databaseAPI.getInstance().getModelParameter(ModelManager.WHOLE_DOMAIN_ID);
+			if (param == null)
+				return false;
+			
+			m_modelMgr.setModelParameter(ModelManager.WHOLE_DOMAIN_ID, param.bRBF, param.dbRBF_c, 
+					param.dbRBF_g, param.dbLinear_c);
+			
+			m_modelMgr.initialBuildModel(ModelManager.WHOLE_DOMAIN_ID, allClsEnt);
 			
 			System.out.println("Initialize finished");
 		} 
@@ -165,7 +183,7 @@ public class ImgRetrieveServer {
 			workThrd.join();
 			
 			//reset members
-			imgs = new ArrayList<MedicalImage>();
+			allImgs = new ArrayList<MedicalImage>();
 			totalMachines = 1;
 			curIndex = 0;
 			norm = new Normalizer(imgproc.ImgFeatureExtractionWrapper.TOTAL_DIM);
@@ -187,18 +205,106 @@ public class ImgRetrieveServer {
 			while (!bStopWorker)
 			{
 				ObjectInputStream socIn = new ObjectInputStream(soc.getInputStream());
-				KNNsearchMsg inMsg = (KNNsearchMsg)socIn.readObject();
+				ImgServMsg inMsg = (ImgServMsg)socIn.readObject();
 					
-				KNNSearchResp resp = new KNNSearchResp();
-				resp.k = inMsg.k;
-				resp.msgId = inMsg.msgId;
-				resp.res = searchKNN(inMsg.feature, inMsg.k);
+				if (inMsg.msgType == ImgServMsg.MsgType.SIM_SEARCH)
+				{
+					KNNSearchResp resp = new KNNSearchResp();
+					resp.k = inMsg.k;
+					resp.msgId = inMsg.msgId;
+					resp.res = searchKNN(inMsg.feature, inMsg.k);
+						
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
 					
-				System.out.println("Search finished");
+					System.out.println("Search result sent");
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.CLASSIFICATION)
+				{
+					ArrayList<Double> featureV = new ArrayList<Double>();
+					for (int i = 0; i < inMsg.feature.length; i++)
+						featureV.add(inMsg.feature[i]);
 					
-				ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
-				socOut.writeObject(resp);
-				System.out.println("Wrote in client");
+					PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, inMsg.domId);
+					
+					ClassifyResp resp = new ClassifyResp();
+					resp.msgId = inMsg.msgId;
+					resp.clsRes = res;
+					
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
+					
+					System.out.println("Classification result sent");
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.START_TRAINING)
+				{
+					MedicalParameter param = databaseAPI.getInstance().getModelParameter(inMsg.domId);
+					if (null == param || !mpDom2DataSet.containsKey(inMsg.domId))
+						break;
+					
+					ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = mpDom2DataSet.get(inMsg.domId);
+					
+					//transition between to type of parameters
+					datamining.ModelParameter paramNew = new datamining.ModelParameter();
+					paramNew.bRBFKernel = param.bRBF;
+					paramNew.dbLinear_C = param.dbLinear_c;
+					paramNew.dbRBF_C = param.dbRBF_c;
+					paramNew.dbRBF_G = param.dbRBF_g;
+					
+					m_modelMgr.requestTraining(inMsg.domId, paramNew, buildDataSet);
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.START_TUNING)
+				{
+					int nDomainId = inMsg.domId;
+					MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
+					if (null == param || (nDomainId != ModelManager.WHOLE_DOMAIN_ID && !mpDom2DataSet.containsKey(nDomainId)))
+						break;
+					
+					ArrayList<CLASSIFY_ENTITY> imgRef = new ArrayList<CLASSIFY_ENTITY>();
+					ArrayList<CLASSIFY_ENTITY> imgSample = new ArrayList<CLASSIFY_ENTITY>();
+					if (nDomainId != ModelManager.WHOLE_DOMAIN_ID)
+						imgRef = mpDom2DataSet.get(nDomainId);
+					else
+					{
+						imgRef = new ArrayList<CLASSIFY_ENTITY>();
+						Iterator<Integer> iterator = mpDom2DataSet.keySet().iterator();
+						while (iterator.hasNext()) 
+						{
+							int nId = (int)iterator.next();
+							imgRef.addAll(mpDom2DataSet.get(nId));
+						}
+					}
+					
+					java.util.Random ran = new java.util.Random();
+					for (int i = 1; i <= imgRef.size(); i++)
+					{
+						if (imgSample.size() < param.nMaxSampleNum)
+							imgSample.add(imgRef.get(i-1));
+						else
+						{
+							boolean bSelect = ((Math.abs(ran.nextInt())%i) <= (imgSample.size()-1)); 
+				
+							if (bSelect)
+							{
+								int nIndexSwap = Math.abs(ran.nextInt())%imgSample.size();
+								imgSample.set(nIndexSwap, imgRef.get(i-1));
+							}
+						}
+					}
+					
+					Collections.shuffle(imgSample);
+					ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
+					ArrayList<datamining.CLASSIFY_ENTITY> testDataSet = new ArrayList<datamining.CLASSIFY_ENTITY>();
+					for (int i = 0; i < imgSample.size(); i++)
+					{
+						if (i < imgSample.size()/param.nFold)
+							testDataSet.add(imgSample.get(i));
+						else
+							buildDataSet.add(imgSample.get(i));
+					}
+					
+					m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet);
+				}
 			}
 		} 
 		catch (ClassNotFoundException e) 
@@ -223,16 +329,16 @@ public class ImgRetrieveServer {
 		
 		ImgFeatureComparator comp = new ImgFeatureComparator(featureV, true);
 		Queue<MedicalImage> knnQue =  new PriorityQueue<MedicalImage>(k, comp); 
-		for (int i = 0; i < imgs.size(); i++)
+		for (int i = 0; i < allImgs.size(); i++)
 		{
 			if (knnQue.size() < k)
-				knnQue.add(imgs.get(i));
+				knnQue.add(allImgs.get(i));
 			else
 			{
-				if (comp.compare(knnQue.peek(), imgs.get(i)) < 0)
+				if (comp.compare(knnQue.peek(), allImgs.get(i)) < 0)
 				{
 					knnQue.remove();
-					knnQue.add(imgs.get(i));
+					knnQue.add(allImgs.get(i));
 				}
 			}
 		}
@@ -276,8 +382,67 @@ public class ImgRetrieveServer {
 		}
 	}
 
+	private ArrayList<MedicalImage> loadDomainImgs(int nDomainId)
+	{
+		//Initialize class map
+		ArrayList<SecondLevelClass> clses = databaseAPI.getInstance().getClass(nDomainId);
+		ArrayList<MedicalImage> imgs = new ArrayList<MedicalImage>();
+		
+		for (int k = 0; k < clses.size(); k++)
+		{
+			int limit = 2000;
+			String strStDocId = null;
+			
+			while (true)
+			{
+				ArrayList<MedicalImage> tmpList = 
+						databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false, 
+						strStDocId, limit);
+				
+				if (null != tmpList && tmpList.size() > 0)
+					strStDocId = tmpList.get(tmpList.size()-1).id;
+				
+				ArrayList<MedicalImage> selList = new ArrayList<MedicalImage>();
+				
+				//random select
+				for (int j = 0; j < tmpList.size(); j++)
+				{
+					norm.InitialScan(tmpList.get(j).featureV);
+					
+					int a = (int) tmpList.get(j).imageId;
+					int b = (a << 16) + (a >> 16);
+					
+					if (Math.abs(a^b)%totalMachines == curIndex)
+					{
+						selList.add(tmpList.get(j));
+					}
+				}
+				
+				imgs.addAll(selList);
+				
+				if (tmpList.size() < limit)
+					break;
+				
+				tmpList = null;
+				selList = null;
+			}
+		}
+		
+		return imgs;
+	}
+
+	
+	/***************************** image feature and model information  **********************/
+	private ArrayList<MedicalImage> allImgs = new ArrayList<MedicalImage>();
+	private ModelManager m_modelMgr = new ModelManager();
+	HashMap<Integer, ArrayList<CLASSIFY_ENTITY>> mpDom2DataSet = 
+			new HashMap<Integer, ArrayList<CLASSIFY_ENTITY>>();
+		
+	//classes map
+	int m_nTotalClasses = 0;
+	/****************************************************************************************/
+	
 	String xmlcfgfile = "";
-	private ArrayList<MedicalImage> imgs = new ArrayList<MedicalImage>();
 	private int totalMachines = 1;
 	private int curIndex = 0;
 	private Normalizer norm = new Normalizer(imgproc.ImgFeatureExtractionWrapper.TOTAL_DIM);

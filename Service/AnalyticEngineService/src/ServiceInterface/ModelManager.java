@@ -21,7 +21,7 @@ public class ModelManager {
 		}
 	}
 	
-	MedicalParameter getModelInfo(int nDomainId)
+	public MedicalParameter getModelInfo(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -36,7 +36,7 @@ public class ModelManager {
 	}
 	
 	//getModelAccuracy
-	double getModelAccuracy(int nDomainId)
+	public double getModelAccuracy(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -50,7 +50,7 @@ public class ModelManager {
 		}
 	}
 	
-	boolean setModelParameter(int nDomainId, boolean bRBF, double rbfc, double rbfg, double linearc)
+	public boolean setModelParameter(int nDomainId, boolean bRBF, double rbfc, double rbfg, double linearc)
 	{
 		synchronized(this)
 		{
@@ -80,7 +80,7 @@ public class ModelManager {
 	}
 	
 	/************************** Model tuning & training *****************************/
-	boolean requestTuning(int nDomainId, ArrayList<datamining.CLASSIFY_ENTITY> testDataSet, 
+	public boolean requestTuning(int nDomainId, ArrayList<datamining.CLASSIFY_ENTITY> testDataSet, 
 			ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet)
 	{
 		
@@ -115,7 +115,7 @@ public class ModelManager {
 		}
 	}
 	
-	boolean requestTraining(int nDomainId, datamining.ModelParameter param, 
+	public boolean requestTraining(int nDomainId, datamining.ModelParameter param, 
 			ArrayList<CLASSIFY_ENTITY> dataset)
 	{
 		synchronized(this)
@@ -135,7 +135,7 @@ public class ModelManager {
 		}
 	}
 	
-	boolean isTrainingFinished(int nDomainId)
+	public boolean isTrainingFinished(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -146,7 +146,7 @@ public class ModelManager {
 		}
 	}
 	
-	double getTuningProgress(int nDomainId)
+	public double getTuningProgress(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -157,7 +157,7 @@ public class ModelManager {
 		}
 	}
 	
-	String getTuningInfo(int nDomainId)
+	public String getTuningInfo(int nDomainId)
 	{
 		synchronized(this)
 		{
@@ -168,7 +168,7 @@ public class ModelManager {
 		}
 	}
 	
-	boolean initialBuildModel(int nDomainId, ArrayList<CLASSIFY_ENTITY> dataset)
+	public boolean initialBuildModel(int nDomainId, ArrayList<CLASSIFY_ENTITY> dataset)
 	{
 		ClassifyModel model = null;
 		synchronized(this)

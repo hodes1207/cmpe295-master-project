@@ -23,8 +23,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
+import MessageLayer.ImgServMsg;
 import MessageLayer.KNNSearchResp;
-import MessageLayer.KNNsearchMsg;
 import MessageLayer.MessageObject;
 import MessageLayer.RetID;
 import ServiceInterface.EngineService;
@@ -278,7 +278,7 @@ public class ImgRetrievalService {
 		ImgFeatureExtractionWrapper.extractFeature(byteImg, vectors);
 			
 		java.util.Random ran = new java.util.Random();
-		KNNsearchMsg msg = new KNNsearchMsg();
+		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.SIM_SEARCH);
 		msg.feature = vectors;
 		msg.k = nNum;
 		msg.msgId = ran.nextInt();

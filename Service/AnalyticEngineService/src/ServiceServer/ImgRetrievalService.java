@@ -3,7 +3,6 @@ package ServiceServer;
 import imgproc.ImgFeatureExtractionWrapper;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,15 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
 import MessageLayer.KNNSearchResp;
@@ -199,92 +189,72 @@ public class ImgRetrievalService {
 			try 
 			{
 				imgLock.lock();
-				boolean timeout = !imgConV.await(10, TimeUnit.SECONDS);
+				imgConV.await(10, TimeUnit.SECONDS);
 				imgLock.unlock();
 				
 				synchronized(this)
 				{
-					if (timeout)
+					Date timenow = new Date();
+					Iterator<Integer> iterator = imgRetreivalRes.keySet().iterator();
+					while (iterator.hasNext()) 
 					{
-						Date timenow = new Date();
-						Iterator<Integer> iterator = pendingMsg.keySet().iterator();
-						while (iterator.hasNext()) 
-						{
-							int nId = iterator.next();
+						int nId = iterator.next();
 							
-							//20 second time out
-							if (timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*20)
-							{
-								// request time out
-								iterator.remove();
-								if (imgRetreivalRes.containsKey(nId))
-									imgRetreivalRes.remove(nId);
-							}
-						}
-					}
-					else
-					{
-						Iterator<Integer> iterator = imgRetreivalRes.keySet().iterator();
-						while (iterator.hasNext()) 
+						if (imgRetreivalRes.get(nId).res.size() >= imgServers.size()
+								|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*20)
 						{
-							int nId = iterator.next();
-							
-							if (imgRetreivalRes.get(nId).res.size() >= totalNumImgServs)
-							{
-								//merge the result
-								ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
-								int k = imgRetreivalRes.get(nId).k;
-								ArrayList<Long> imgResId = new ArrayList<Long>();
+							//merge the result
+							ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
+							int k = imgRetreivalRes.get(nId).k;
+							ArrayList<Long> imgResId = new ArrayList<Long>();
 								
-								while (imgResId.size() < k)
+							while (imgResId.size() < k)
+							{
+								int s = -1;
+								for (int j = 0; j < res.size(); j++)
 								{
-									int s = -1;
-									for (int j = 0; j < res.size(); j++)
+									if (!res.get(j).isEmpty())
 									{
-										if (!res.get(j).isEmpty())
-										{
-											if (s < 0 || res.get(j).get(0).dist < res.get(s).get(0).dist)
-												s = j;
-										}
+										if (s < 0 || res.get(j).get(0).dist < res.get(s).get(0).dist)
+											s = j;
 									}
+								}
 									
-									if (s < 0) break;
+								if (s < 0) break;
 									
-									imgResId.add(res.get(s).get(0).imgId);
-									res.get(s).remove(0);
+								imgResId.add(res.get(s).get(0).imgId);
+								res.get(s).remove(0);
+							}
+								
+							imgRetreivalRes.remove(nId);
+								
+							if (pendingMsg.containsKey(nId))
+							{
+								ObjectOutputStream out = pendingMsg.get(nId).out;
+								Socket soc = pendingMsg.get(nId).soc;
+								if (soc.isConnected() && !soc.isClosed())
+								{
+									try 
+									{
+										MessageObject obj = new MessageObject();
+										obj.longlist = imgResId;
+										obj.setrettype(RetID.LONG_LIST);
+										out.writeObject(obj);
+										out.flush();
+									} 
+									catch (IOException e) 
+									{
+										e.printStackTrace();
+									}
 								}
 								
-								imgRetreivalRes.remove(nId);
-								
-								if (pendingMsg.containsKey(nId))
-								{
-									ObjectOutputStream out = pendingMsg.get(nId).out;
-									Socket soc = pendingMsg.get(nId).soc;
-									if (soc.isConnected() && !soc.isClosed())
-									{
-										try 
-										{
-											MessageObject obj = new MessageObject();
-											obj.longlist = imgResId;
-											obj.setrettype(RetID.LONG_LIST);
-											out.writeObject(obj);
-											out.flush();
-										} 
-										catch (IOException e) 
-										{
-											e.printStackTrace();
-										}
-									}
-										
-									pendingMsg.remove(nId);
-								}
-								
-								System.out.println("Image retrieval result merged and sent.......");
-								break;
+								pendingMsg.remove(nId);
 							}
+								
+							System.out.println("Image retrieval result merged and sent.......");
+							break;
 						}
 					}
-					
 				}
 			} 
 			catch (InterruptedException e) 

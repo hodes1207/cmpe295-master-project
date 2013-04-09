@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +40,11 @@ public class ImgRetrieveServer {
 		//parse configuration file
 		try 
 		{
+			System.out.println("Initializing ..... ");
+			
+			imgLock = new ReentrantLock( );
+			imgConV = imgLock.newCondition();
+			
 			xmlcfgfile = xmlCfgFile;
 			
 			File cfgFile = new File(xmlCfgFile);
@@ -115,10 +124,12 @@ public class ImgRetrieveServer {
 			{
 				norm.normalizeVector(imgs.get(i).featureV);
 			}
+			
+			System.out.println("Initialize finished");
 		} 
 		catch ( Exception e1) //ParserConfigurationException | SAXException | IOException
 		{
-			//e1.printStackTrace();
+			e1.printStackTrace();
 			return false;
 		} /*
 		catch (ClassNotFoundException e) 
@@ -137,22 +148,17 @@ public class ImgRetrieveServer {
 		threadSignal.await();
 	}
 	
-	public void stop() throws InterruptedException
-	{
-		bStopServer = true;
-		reloadThrd.join();
-		
-		bStopWorker = true;
-		workThrd.join();
-		
-		threadSignal.countDown();
-	}
-	
 	void reloadThrdFunc() throws IOException, InterruptedException
 	{
-		while (!bStopServer)
+		while (true)
 		{
-			Thread.sleep(1000*reloadhours*60*60);
+			imgLock.lock();
+			boolean timeout = !imgConV.await(reloadhours, TimeUnit.HOURS);
+			imgLock.unlock();
+			
+			if (!timeout)
+				break;
+			
 			bStopWorker = true;
 			soc.close();
 			
@@ -248,18 +254,22 @@ public class ImgRetrieveServer {
 	public void shutdownServer()
 	{
 		try {
-			soc.close();
+			if (soc != null)
+				soc.close();
 		} 
 		catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		bStopWorker = true;
+		imgLock.lock();
+		imgConV.signal();
+		imgLock.unlock();
 		
 		// wait for threads to end
 		try {
 			workThrd.join();
 			reloadThrd.join();
+			threadSignal.countDown();
 		} 
 		catch (InterruptedException e) {
 			e.printStackTrace();
@@ -274,10 +284,12 @@ public class ImgRetrieveServer {
 	
 	private Socket soc = null; 
 	boolean bStopWorker = false;
-	boolean bStopServer = false;
 	int reloadhours = 15;
 	
 	ImgRetrievalThrd workThrd = new ImgRetrievalThrd(this);
 	ServerReloadThrd reloadThrd = new ServerReloadThrd(this);
 	CountDownLatch threadSignal = new CountDownLatch(1);
+	
+	private Condition imgConV = null;
+	private Lock imgLock = null;
 }

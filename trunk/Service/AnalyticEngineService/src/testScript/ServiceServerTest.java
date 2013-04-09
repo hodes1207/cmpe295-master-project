@@ -16,22 +16,24 @@ public class ServiceServerTest {
 		CommunicationAPI comAPI = new CommunicationAPI("127.0.0.1", 3456);
 		
 		ArrayList<Domain> doms = comAPI.GetDomain();
+		//Thread.sleep(20000);
+		
 		ArrayList<SecondLevelClass> clses = comAPI.GetClasses(0);
 		ArrayList<Long> picIds = comAPI.GetPicId((1 << 16) + 1);
 
-		for(int i = 0; i < picIds.size(); i++)
+		/*for(int i = 0; i < picIds.size(); i++)
 		{
 			byte[] content = comAPI.RetrieveImg(picIds.get(0));
 			System.out.println("content "+i+": "+content);
-		}
-		
+		}*/
 		
 		byte[] content = comAPI.RetrieveImg(picIds.get(0));
 		
 		double dbTmp = comAPI.getModelAccuracy(1);
 		String info = comAPI.classificationEstimation(content, 1);
-		picIds = comAPI.SimilaritySearch(content, 1);
 		
+		picIds = comAPI.SimilaritySearch(content, 100);
+
 		boolean b = comAPI.AddImg((1 << 16) + 1, 1234567, content);
 		b = comAPI.DeleteImg((1 << 16) + 1, 1234567);
 		

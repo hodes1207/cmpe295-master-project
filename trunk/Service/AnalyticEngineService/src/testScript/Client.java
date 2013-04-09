@@ -3,12 +3,15 @@ package testScript;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
 import CommunicationInterface.*;
 import database.*;
+import datamining.CLASSIFY_ENTITY;
 
 
 
-public class Client {    
+public class Client {   
+	
 	public static void main(String[] args) throws IOException {    
 		
 		
@@ -37,4 +40,7 @@ public class Client {
 	//	System.exit(0);   
 	}
 }
+
+
+
 

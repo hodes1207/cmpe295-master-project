@@ -1,6 +1,10 @@
 package datamining;
 
-public class CLASSIFY_RES {
+import java.io.Serializable;
+
+public class CLASSIFY_RES implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	
 	CLASSIFY_RES(int id, double prob) 
 	{

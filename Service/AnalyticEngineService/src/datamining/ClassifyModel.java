@@ -27,7 +27,7 @@ public class ClassifyModel {
 	{
 		setTuningFlag(true);
 		setTuningProgress(0.0);
-		m_strTuningInfo = "Start parameter tuning .....";
+		m_strTuningInfo = "Parameter tuning in process .....";
 		
 		int nDim = buildDataSet.get(0).vectors.size();
 		
@@ -48,6 +48,7 @@ public class ClassifyModel {
 		
 		//Tune linear model
 		{
+			System.out.println("Start tuning on linear svm algorithm .......");
 			for (int i = 0; i < param2.matrixC.length; i++) {
 				double c = param2.matrixC[i];
 				linearModel.setC(c);
@@ -66,6 +67,9 @@ public class ClassifyModel {
 
 				// Append tuning information
 				appendTuningInfo(param2.getTuneInfo(i));
+				
+				System.out.println("\n============================================== ");
+				System.out.println(m_strTuningInfo);
 			}
 
 			int indexMaxC = 0;
@@ -85,6 +89,7 @@ public class ClassifyModel {
 		// Tune RBF model
 		if (bRBFEnabled)
 		{
+			System.out.println("Start tuning on RBF svm algorithm .......");
 			LibSVMClassifier rbfModel = new LibSVMClassifier(nDim);
 			
 			for (int i = 0; i < param1.matrixC.length; i++)
@@ -111,6 +116,9 @@ public class ClassifyModel {
 					
 					//Append tuning information
 					appendTuningInfo(param1.getTuneInfo(i, j));
+					
+					System.out.println("\n==============================================");
+					System.out.println(m_strTuningInfo);
 				}
 			}
 			

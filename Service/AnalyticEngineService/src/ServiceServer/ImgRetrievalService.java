@@ -1,7 +1,5 @@
 package ServiceServer;
 
-import imgproc.ImgFeatureExtractionWrapper;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -21,17 +19,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import MessageLayer.ClassifyResp;
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
 import MessageLayer.ImgServMsg;
-import MessageLayer.KNNSearchResp;
+import MessageLayer.ImgServResp;
 import MessageLayer.MessageObject;
 import MessageLayer.RetID;
-import ServiceInterface.EngineService;
 import database.databaseAPI;
+import datamining.CLASSIFY_RES;
+import datamining.PROB_ESTIMATION_RES;
 
-public class ImgRetrievalService {
-	
+public class ImgRetrievalService 
+{	
 	public boolean initServer(String domainDBName, String classDBName, String medicalImageDBName, 
 			String DBUrl, int imgListenPort, int numImgServs)
 	{
@@ -63,7 +64,7 @@ public class ImgRetrievalService {
 	
 	public void imgServMsgThrdFunc() throws IOException
 	{
-		while (selector.select() > 0) 
+		while (selector.select() >= 0) 
 		{
 			Iterator<SelectionKey> keyIterator = selector.selectedKeys().iterator();
 			while (keyIterator.hasNext()) 
@@ -130,24 +131,56 @@ public class ImgRetrievalService {
 
 						try 
 						{
+							System.out.println("Begin read sock");
+							
 							ObjectInputStream is = new ObjectInputStream(sc.socket()
 									.getInputStream());
-							KNNSearchResp resp = (KNNSearchResp)is.readObject();
+							ImgServResp resp = (ImgServResp)is.readObject();
 							
-							if (!imgRetreivalRes.containsKey(resp.msgId))
+							System.out.println("End read sock");
+							
+							if (resp.msgType == ImgServMsg.MsgType.SIM_SEARCH)
 							{
-								ImgRetrievalRes item = new ImgRetrievalRes();
-								item.k = resp.k;
-								item.res = new ArrayList<ArrayList<ImgDisResEntry>>();
-									
-								imgRetreivalRes.put(resp.msgId, item);
-							}
+								System.out.print("Receive SIM_SEARCH from img server, ");
+								System.out.print("msg id: ");
+								System.out.println(resp.searchResp.msgId);
 								
-							imgRetreivalRes.get(resp.msgId).res.add(resp.res);
-							
-							imgLock.lock();
-							imgConV.signal();
-							imgLock.unlock();
+								if (resp.searchResp != null)
+								{
+									if (!imgRetreivalRes.containsKey(resp.searchResp.msgId))
+									{
+										ImgRetrievalRes item = new ImgRetrievalRes();
+										item.k = resp.searchResp.k;
+										item.res = new ArrayList<ArrayList<ImgDisResEntry>>();
+											
+										imgRetreivalRes.put(resp.searchResp.msgId, item);
+									}
+										
+									imgRetreivalRes.get(resp.searchResp.msgId).res.add(resp.searchResp.res);
+									
+									imgLock.lock();
+									imgConV.signal();
+									imgLock.unlock();
+								}
+							}
+							else if (resp.msgType == ImgServMsg.MsgType.CLASSIFICATION)
+							{
+								ClassifyResp clsResp = resp.clsResp;
+								if (null != clsResp)
+								{
+									if (!imgClassifyRes.containsKey(clsResp.msgId))
+									{
+										ArrayList<PROB_ESTIMATION_RES> item = new ArrayList<PROB_ESTIMATION_RES>();
+										imgClassifyRes.put(clsResp.msgId, item);
+									}
+									
+									imgClassifyRes.get(clsResp.msgId).add(clsResp.clsRes);
+									
+									imgLock.lock();
+									imgConV.signal();
+									imgLock.unlock();
+								}
+							}
 						} 
 						catch ( Exception e) //IOException | ClassNotFoundException
 						{
@@ -156,7 +189,7 @@ public class ImgRetrievalService {
 
 							continue;
 						}
-
+						
 						sc.configureBlocking(false);
 						sc.register(selector, SelectionKey.OP_READ);
 					}
@@ -194,67 +227,12 @@ public class ImgRetrievalService {
 				
 				synchronized(this)
 				{
-					Date timenow = new Date();
-					Iterator<Integer> iterator = imgRetreivalRes.keySet().iterator();
-					while (iterator.hasNext()) 
-					{
-						int nId = iterator.next();
-							
-						if (imgRetreivalRes.get(nId).res.size() >= imgServers.size()
-								|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*20)
-						{
-							//merge the result
-							ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
-							int k = imgRetreivalRes.get(nId).k;
-							ArrayList<Long> imgResId = new ArrayList<Long>();
-								
-							while (imgResId.size() < k)
-							{
-								int s = -1;
-								for (int j = 0; j < res.size(); j++)
-								{
-									if (!res.get(j).isEmpty())
-									{
-										if (s < 0 || res.get(j).get(0).dist < res.get(s).get(0).dist)
-											s = j;
-									}
-								}
-									
-								if (s < 0) break;
-									
-								imgResId.add(res.get(s).get(0).imgId);
-								res.get(s).remove(0);
-							}
-								
-							imgRetreivalRes.remove(nId);
-								
-							if (pendingMsg.containsKey(nId))
-							{
-								ObjectOutputStream out = pendingMsg.get(nId).out;
-								Socket soc = pendingMsg.get(nId).soc;
-								if (soc.isConnected() && !soc.isClosed())
-								{
-									try 
-									{
-										MessageObject obj = new MessageObject();
-										obj.longlist = imgResId;
-										obj.setrettype(RetID.LONG_LIST);
-										out.writeObject(obj);
-										out.flush();
-									} 
-									catch (IOException e) 
-									{
-										e.printStackTrace();
-									}
-								}
-								
-								pendingMsg.remove(nId);
-							}
-								
-							System.out.println("Image retrieval result merged and sent.......");
-							break;
-						}
-					}
+					processPendingImgRetrievalRequest();
+				}
+				
+				synchronized(this)
+				{
+					processPendingImgClassifyRequest();
 				}
 			} 
 			catch (InterruptedException e) 
@@ -274,12 +252,9 @@ public class ImgRetrievalService {
 			throws IOException
 	{
 		//get normalized vector
-		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
-		ImgFeatureExtractionWrapper.extractFeature(byteImg, vectors);
-			
 		java.util.Random ran = new java.util.Random();
 		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.SIM_SEARCH);
-		msg.feature = vectors;
+		msg.byteImg = byteImg;
 		msg.k = nNum;
 		msg.msgId = ran.nextInt();
 			
@@ -289,26 +264,216 @@ public class ImgRetrievalService {
 		info.soc = soc;
 		
 		synchronized(this)
-		{
+		{	
 			pendingMsg.put(msg.msgId, info);
+			broadCastMsg(msg);
 			
-			Iterator<Integer> iterator = imgServers.keySet().iterator();
-			while (iterator.hasNext()) 
-			{
-				int id = iterator.next();
-				
-				ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
-				ObjectOutputStream oosb = new ObjectOutputStream(baos); 
-				oosb.writeObject(msg); 
-				oosb.flush();
-
-				ByteBuffer bb = ByteBuffer.wrap(baos.toByteArray());
-				imgServers.get(id).write(bb);
-			}
+			System.out.print("Broadcasting SIM_SEARCH to img servers, ");
+			System.out.print("msg id: ");
+			System.out.println(msg.msgId);
 		}
 	}	
 	
-	public EngineService engineServ = new EngineService();
+	public void ClassificationRequest(byte[] byteImg, int domId, ObjectOutputStream out, Socket soc)
+			throws IOException
+	{
+		java.util.Random ran = new java.util.Random();
+		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.CLASSIFICATION);
+		msg.byteImg = byteImg;
+		msg.msgId = ran.nextInt();
+		msg.domId = domId;
+		
+		ReqInfo info = new ReqInfo();
+		info.out = out;
+		info.time = new Date();
+		info.soc = soc;
+		
+		synchronized(this)
+		{	
+			pendingMsg.put(msg.msgId, info);
+			broadCastMsg(msg);
+		}
+	}
+	
+	public void StartTrainingRequest(int domId) throws IOException
+	{
+		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.START_TRAINING);
+		msg.domId = domId;
+		
+		broadCastMsg(msg);
+	}
+	
+	public void StartTuningRequest(int domId) throws IOException
+	{
+		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.START_TUNING);
+		msg.domId = domId;
+		
+		broadCastMsg(msg);
+	}
+	
+	public void broadCastMsg(ImgServMsg msg) throws IOException
+	{
+		if (null == msg)
+			return;
+		
+		Iterator<Integer> iterator = imgServers.keySet().iterator();
+		while (iterator.hasNext()) 
+		{
+			int id = iterator.next();
+			
+			ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+			ObjectOutputStream oosb = new ObjectOutputStream(baos); 
+			oosb.writeObject(msg); 
+			oosb.flush();
+
+			ByteBuffer bb = ByteBuffer.wrap(baos.toByteArray());
+			imgServers.get(id).write(bb);
+		}
+	}
+	
+	private void processPendingImgRetrievalRequest()
+	{
+		Date timenow = new Date();
+		Iterator<Integer> iterator = imgRetreivalRes.keySet().iterator();
+		while (iterator.hasNext()) 
+		{
+			int nId = iterator.next();
+				
+			if (imgRetreivalRes.get(nId).res.size() >= imgServers.size()
+					|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*10)
+			{
+				//merge the result
+				ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
+				int k = imgRetreivalRes.get(nId).k;
+				ArrayList<Long> imgResId = new ArrayList<Long>();
+					
+				while (imgResId.size() < k)
+				{
+					int s = -1;
+					for (int j = 0; j < res.size(); j++)
+					{
+						if (!res.get(j).isEmpty())
+						{
+							if (s < 0 || res.get(j).get(0).dist < res.get(s).get(0).dist)
+								s = j;
+						}
+					}
+						
+					if (s < 0) break;
+						
+					imgResId.add(res.get(s).get(0).imgId);
+					res.get(s).remove(0);
+				}
+					
+				imgRetreivalRes.remove(nId);
+					
+				if (pendingMsg.containsKey(nId))
+				{
+					ObjectOutputStream out = pendingMsg.get(nId).out;
+					Socket soc = pendingMsg.get(nId).soc;
+					if (soc.isConnected() && !soc.isClosed())
+					{
+						try 
+						{
+							MessageObject obj = new MessageObject();
+							obj.longlist = imgResId;
+							obj.setrettype(RetID.LONG_LIST);
+							out.writeObject(obj);
+							out.flush();
+						} 
+						catch (IOException e) 
+						{
+							e.printStackTrace();
+						}
+					}
+					
+					pendingMsg.remove(nId);
+				}
+					
+				System.out.println("Image retrieval result merged and sent.......");
+			}
+		}
+	}
+	
+	private void processPendingImgClassifyRequest()
+	{
+		Date timenow = new Date();
+		Iterator<Integer> iterator = imgClassifyRes.keySet().iterator();
+		while (iterator.hasNext()) 
+		{
+			int nId = iterator.next();
+				
+			if (imgClassifyRes.get(nId).size() >= imgServers.size()
+					|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*20)
+			{
+				//merge the result
+				ArrayList<PROB_ESTIMATION_RES> res = imgClassifyRes.get(nId);
+				HashMap<Integer, Integer> recNum = new HashMap<Integer, Integer>();
+				HashMap<Integer, Double> recProb = new HashMap<Integer, Double>();
+				for (int i = 0; i < res.size(); i++)
+				{
+					for (int j = 0; j < res.get(i).probRes.size(); j++)
+					{
+						int x = res.get(i).probRes.get(j).nClsId;
+						if (!recNum.containsKey(x))
+						{
+							recNum.put(x, 0);
+							recProb.put(x, 0.0);
+						}
+						
+						recNum.put(x, recNum.get(x)+1);
+						recProb.put(x, recProb.get(x) + res.get(i).probRes.get(j).dbProb);
+					}
+				}
+				
+				PROB_ESTIMATION_RES mergRes = new PROB_ESTIMATION_RES();
+				Iterator<Integer> itRec = recNum.keySet().iterator();
+				while (itRec.hasNext()) 
+				{
+					int clsid = itRec.next();
+					double prob = recProb.get(clsid)/recNum.get(clsid);
+					
+					mergRes.probRes.add(new CLASSIFY_RES(clsid, prob));
+				}
+				
+				int max = 0;
+				for (int i = 1; i < mergRes.probRes.size(); i++)
+				{
+					if (mergRes.probRes.get(i).dbProb > mergRes.probRes.get(max).dbProb)
+						max = i;
+				}
+				
+				mergRes.nClsId = mergRes.probRes.get(max).nClsId;
+					
+				imgClassifyRes.remove(nId);
+					
+				if (pendingMsg.containsKey(nId))
+				{
+					ObjectOutputStream out = pendingMsg.get(nId).out;
+					Socket soc = pendingMsg.get(nId).soc;
+					if (soc.isConnected() && !soc.isClosed())
+					{
+						try 
+						{
+							MessageObject obj = new MessageObject();
+							obj.classifyRes = mergRes;
+							obj.setrettype(RetID.CLS_RES);
+							out.writeObject(obj);
+							out.flush();
+						} 
+						catch (IOException e) 
+						{
+							e.printStackTrace();
+						}
+					}
+					
+					pendingMsg.remove(nId);
+				}
+					
+				System.out.println("Image classification results merged and sent.......");
+			}
+		}
+	}
 	
 	private int totalNumImgServs = 1;
 	private HashMap<Integer, SocketChannel> imgServers = new HashMap<Integer, SocketChannel>();
@@ -332,4 +497,7 @@ public class ImgRetrievalService {
 	private HashMap<Integer, ReqInfo> pendingMsg = new HashMap<Integer, ReqInfo>();
 	private HashMap<Integer, ImgRetrievalRes> imgRetreivalRes = 
 			new HashMap<Integer, ImgRetrievalRes>();
+	
+	private HashMap<Integer, ArrayList<PROB_ESTIMATION_RES>> imgClassifyRes = 
+			new HashMap<Integer, ArrayList<PROB_ESTIMATION_RES>>();
 }

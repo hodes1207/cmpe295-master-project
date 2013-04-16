@@ -9,9 +9,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 @JsonIgnoreProperties({"id", "revision", "_attachments"})
 public class MedicalImage implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	@JsonProperty("_id")

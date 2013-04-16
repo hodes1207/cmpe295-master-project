@@ -13,5 +13,6 @@ public enum RetID {
       BOOL,       // boolean value
       INT,        // int value
       DOUBLE,      // Double
-      MOD_INFO
+      MOD_INFO,
+      CLS_RES,
 }

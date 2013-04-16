@@ -24,12 +24,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import ServiceInterface.ModelManager;
+import ImgRetrieveServer.ModelManager;
 
 public class DatabaseInitiation 
 {
 	public static String xmlCfgFile = "testdb_ini.xml";
-
+	public static int dupTimes = 1;
+	
 	// domain id (domain index) to class ids
 	public static HashMap<Integer, Integer[]> domIdToClsId = new HashMap<Integer, Integer[]>();
 	
@@ -93,15 +94,95 @@ public class DatabaseInitiation
 		
 		return true;
 	}
+	
+	private static void insertImgToDB(File file, int domId, int classId, Random randomGenerator
+			, MedicalImageRepository imageRepo, CouchDbConnector imageDB) throws IOException
+	{
+		if (null == file)
+			return ;
+		
+		MedicalImage image = new MedicalImage();
+		image.setDomainId(domId);
+		image.setClassId(classId);
+
+		System.out.println("Image File: " + file.getName());
+
+		Long imageId = randomGenerator.nextLong();
+		image.setImageId(imageId);
+		System.out.println("Image Id: " + imageId);
+
+		// TO DO: if doc id can be other type, or create
+		// index on imageId
+		String docId = Long.toString(imageId);
+		image.setId(docId);
+		System.out.println("Doc Id: " + docId);
+
+		// create png image attachment to this image
+		// document in db
+		BufferedImage imageBuffer = ImageIO
+				.read(file);
+		
+		if (null == imageBuffer) 
+			return ;
+		
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		ImageIO.write(imageBuffer, "png", os);
+		InputStream data = new ByteArrayInputStream(
+				os.toByteArray());
+
+		String contentType = "image/png";
+
+		byte[] imageByteArray = os.toByteArray();
+		image.setImage(imageByteArray);
+		double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+		ImgFeatureExtractionWrapper.extractFeature(
+				imageByteArray, vectors);
+		ArrayList<Double> featureV = new ArrayList<Double>();
+		for (int k = 0; k < vectors.length; k++) {
+			featureV.add(vectors[k]);
+		}
+
+		image.setFeatureV(featureV);
+
+		// add image to db without the png file
+		imageRepo.add(image);
+
+		AttachmentInputStream attachment = new AttachmentInputStream(
+				file.getName(), data, contentType);
+
+		// imageDB
+		Boolean docExist = imageRepo.contains(docId);
+		if (docExist) {
+			MedicalImage temp = imageRepo.get(docId);
+
+			System.out.println("Revision Num: "	+ temp.getRevision());
+			imageDB.createAttachment(docId,	temp.getRevision(), attachment);
+		}
+	}
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public static void main(String[] args) {
-
+		
+		if (args.length > 2)
+		{
+			System.out.println(
+					"Invalid arguments \n " +
+					"First argument is the path of configuration file \n " +
+					"Second argument is the duplication times \n");
+			
+			return;
+		}
+		
+		if (args.length >= 1)
+			xmlCfgFile = args[0];
+		
+		if (args.length == 2)
+			dupTimes = Integer.parseInt(args[1]);
+		
 		if (!parseCfgFile())
 			return;
 		
-		Random randomGenerator = new Random();
 		try {
 			databaseAPI.getInstance().initDBInstance(domainDBName, classDBName, medicalImageDBName, DBUrl);
 			databaseAPI.getInstance().deleteExistedDBs();
@@ -159,66 +240,15 @@ public class DatabaseInitiation
 							+ listOfImages.length);
 
 					// listOfImages.length - 1 to avoid Thumb.db file at the end
+					Random randomGenerator = new Random();
 					for (int i = 0; i < listOfImages.length; i++) {
-						if (listOfImages[i].isFile()) {
-							MedicalImage image = new MedicalImage();
-							image.setDomainId(domId);
-							image.setClassId(classId);
-
-							System.out.println("Image File: " + listOfImages[i].getName());
-
-							Long imageId = randomGenerator.nextLong();
-							image.setImageId(imageId);
-							System.out.println("Image Id: " + imageId);
-
-							// TO DO: if doc id can be other type, or create
-							// index on imageId
-							String docId = Long.toString(imageId);
-							image.setId(docId);
-							System.out.println("Doc Id: " + docId);
-
-							// create png image attachment to this image
-							// document in db
-							BufferedImage imageBuffer = ImageIO
-									.read(listOfImages[i]);
-							
-							if (null == imageBuffer) 
-								continue;
-							
-							ByteArrayOutputStream os = new ByteArrayOutputStream();
-							ImageIO.write(imageBuffer, "png", os);
-							InputStream data = new ByteArrayInputStream(
-									os.toByteArray());
-
-							String contentType = "image/png";
-
-							byte[] imageByteArray = os.toByteArray();
-							image.setImage(imageByteArray);
-							double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
-							ImgFeatureExtractionWrapper.extractFeature(
-									imageByteArray, vectors);
-							ArrayList<Double> featureV = new ArrayList<Double>();
-							for (int k = 0; k < vectors.length; k++) {
-								featureV.add(vectors[k]);
-							}
-
-							image.setFeatureV(featureV);
-
-							// add image to db without the png file
-							imageRepo.add(image);
-
-							AttachmentInputStream attachment = new AttachmentInputStream(
-									listOfImages[i].getName(), data, contentType);
-
-							// imageDB
-							Boolean docExist = imageRepo.contains(docId);
-							if (docExist) {
-								MedicalImage temp = imageRepo.get(docId);
-
-								System.out.println("Revision Num: "	+ temp.getRevision());
-								imageDB.createAttachment(docId,	temp.getRevision(), attachment);
-							}
-						} else if (listOfImages[i].isDirectory()) {
+						if (listOfImages[i].isFile()) 
+						{
+							for (int j = 0; j < dupTimes; j++)
+								insertImgToDB(listOfImages[i], domId, classId, randomGenerator, imageRepo, imageDB);
+						} 
+						else if (listOfImages[i].isDirectory()) 
+						{
 							System.out.println("Directory: "
 									+ listOfImages[i].getName());
 						}

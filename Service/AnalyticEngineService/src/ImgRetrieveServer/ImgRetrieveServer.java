@@ -28,9 +28,9 @@ import MessageLayer.ClassifyResp;
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
 import MessageLayer.ImgServMsg;
+import MessageLayer.ImgServResp;
 import MessageLayer.KNNSearchResp;
 import ServiceInterface.ImgFeatureComparator;
-import ServiceInterface.ModelManager;
 
 import database.*;
 import datamining.CLASSIFY_ENTITY;
@@ -209,27 +209,47 @@ public class ImgRetrieveServer {
 					
 				if (inMsg.msgType == ImgServMsg.MsgType.SIM_SEARCH)
 				{
-					KNNSearchResp resp = new KNNSearchResp();
-					resp.k = inMsg.k;
-					resp.msgId = inMsg.msgId;
-					resp.res = searchKNN(inMsg.feature, inMsg.k);
+					if (null == inMsg.byteImg)
+						continue;
+					
+					double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+					ImgFeatureExtractionWrapper.extractFeature(inMsg.byteImg, vectors);
+						
+					KNNSearchResp knnResp = new KNNSearchResp();
+					knnResp.k = inMsg.k;
+					knnResp.msgId = inMsg.msgId;
+					knnResp.res = searchKNN(vectors, inMsg.k);
+					
+					ImgServResp resp = new ImgServResp(ImgServMsg.MsgType.SIM_SEARCH);
+					resp.searchResp = knnResp;
 						
 					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
 					socOut.writeObject(resp);
 					
-					System.out.println("Search result sent");
+					System.out.print("Search result sent, msg id: ");
+					System.out.println(knnResp.msgId);
 				}
 				else if (inMsg.msgType == ImgServMsg.MsgType.CLASSIFICATION)
 				{
-					ArrayList<Double> featureV = new ArrayList<Double>();
-					for (int i = 0; i < inMsg.feature.length; i++)
-						featureV.add(inMsg.feature[i]);
+					if (null == inMsg.byteImg)
+						continue;
 					
+					double[] vectors = new double[ImgFeatureExtractionWrapper.TOTAL_DIM];
+					ImgFeatureExtractionWrapper.extractFeature(inMsg.byteImg, vectors);
+					
+					ArrayList<Double> featureV = new ArrayList<Double>();
+					for (int i = 0; i < vectors.length; i++)
+						featureV.add(vectors[i]);
+					
+					norm.normalizeVector(featureV);
 					PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, inMsg.domId);
 					
-					ClassifyResp resp = new ClassifyResp();
-					resp.msgId = inMsg.msgId;
-					resp.clsRes = res;
+					ClassifyResp clsResp = new ClassifyResp();
+					clsResp.msgId = inMsg.msgId;
+					clsResp.clsRes = res;
+					
+					ImgServResp resp = new ImgServResp(ImgServMsg.MsgType.CLASSIFICATION);
+					resp.clsResp = clsResp;
 					
 					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
 					socOut.writeObject(resp);
@@ -240,7 +260,7 @@ public class ImgRetrieveServer {
 				{
 					MedicalParameter param = databaseAPI.getInstance().getModelParameter(inMsg.domId);
 					if (null == param || !mpDom2DataSet.containsKey(inMsg.domId))
-						break;
+						continue;
 					
 					ArrayList<datamining.CLASSIFY_ENTITY> buildDataSet = mpDom2DataSet.get(inMsg.domId);
 					
@@ -257,8 +277,9 @@ public class ImgRetrieveServer {
 				{
 					int nDomainId = inMsg.domId;
 					MedicalParameter param = databaseAPI.getInstance().getModelParameter(nDomainId);
-					if (null == param || (nDomainId != ModelManager.WHOLE_DOMAIN_ID && !mpDom2DataSet.containsKey(nDomainId)))
-						break;
+					if (null == param || 
+							(nDomainId != ModelManager.WHOLE_DOMAIN_ID && !mpDom2DataSet.containsKey(nDomainId)))
+						continue;
 					
 					ArrayList<CLASSIFY_ENTITY> imgRef = new ArrayList<CLASSIFY_ENTITY>();
 					ArrayList<CLASSIFY_ENTITY> imgSample = new ArrayList<CLASSIFY_ENTITY>();
@@ -303,7 +324,10 @@ public class ImgRetrieveServer {
 							buildDataSet.add(imgSample.get(i));
 					}
 					
-					m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet);
+					if(param.bRBF)
+						m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet, true);
+					else
+						m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet, false);
 				}
 			}
 		} 

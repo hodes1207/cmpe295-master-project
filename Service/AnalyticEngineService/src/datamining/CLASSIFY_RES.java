@@ -6,7 +6,7 @@ public class CLASSIFY_RES implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	CLASSIFY_RES(int id, double prob) 
+	public CLASSIFY_RES(int id, double prob) 
 	{
 		nClsId = id;
 		dbProb = prob;

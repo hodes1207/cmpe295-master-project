@@ -26,7 +26,7 @@ public class ServerConnection {
 	}
 	
 	// Send the client requested message to the server.
-	public void sendmsg (MessageObject query) throws IOException {
+	public synchronized void sendmsg (MessageObject query) throws IOException {
 		
 		if (query == null) {
 			System.out.println("ERROR!! NULL query string passed in");
@@ -42,7 +42,7 @@ public class ServerConnection {
 	}
 	
 	// Get the message object from the server.
-	public MessageObject getmsg (MessageObject query) throws IOException {
+	public synchronized MessageObject getmsg (MessageObject query) throws IOException {
 	    MessageObject result;
 	    
 	    try {

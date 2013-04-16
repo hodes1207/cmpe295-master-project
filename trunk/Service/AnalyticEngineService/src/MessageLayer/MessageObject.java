@@ -3,6 +3,8 @@
  */
 package MessageLayer;
 import database.*;
+import datamining.PROB_ESTIMATION_RES;
+
 import java.util.*;
 import java.io.*;
 
@@ -12,9 +14,12 @@ import java.io.*;
  */
 public class MessageObject implements Serializable {
 	
+	private static final long serialVersionUID = 1L;
+
 	// The clientid is unique to every client connection and is used to
 	// identify multiple client connections.
 	private static int clientid = new Random().hashCode();
+	
 	public long len;
 	public MsgId qtype;
 	public ArrayList<Long> longlist;
@@ -32,7 +37,7 @@ public class MessageObject implements Serializable {
 	public double dval;
 	public double rbf_c, rbf_g;
 	public MedicalParameter modInfo;
-	
+	public PROB_ESTIMATION_RES classifyRes;
 
 
 	/**

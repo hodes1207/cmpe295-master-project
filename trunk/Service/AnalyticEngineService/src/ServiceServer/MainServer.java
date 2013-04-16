@@ -41,8 +41,8 @@ public class MainServer {
 	    
 	 }
     
-    public static void main(String[] args) throws Exception {  
-    	
+    public static void main(String[] args) throws Exception 
+    {  	
       Runtime.getRuntime().addShutdownHook(new ExitTrigger(serv));
     	
       String strCfgFile = "ServiceServ_ini.xml";
@@ -64,7 +64,7 @@ public class MainServer {
     	    	  {
     	    		  Handler hd = it.next();
     	    		  if (!hd.isAlive())
-    	    			  it.remove();
+    	    			  it.remove(); // remove dead connections
     	    	  }
     	    	  
     	    	  thrd.start();
@@ -111,15 +111,6 @@ public class MainServer {
 		
 		imgService.initServer(domainDBName, classDBName, medicalImageDBName, DBUrl, imgListenPort, numImgServs);
 		imgService.run();
-		
-		// Service Engine BootStrap
-		serv.startService();
-			
-		while (serv.getInitProgress() < 1.0)
-		{
-			System.out.println(serv.getInitProgress());
-			Thread.sleep(3000);
-		}
     }
     
     private static class Handler extends Thread {  
@@ -202,116 +193,113 @@ public class MainServer {
         	// req.setrettype(RetID.INVALID);
         	
         	switch (req.gettype()) {
-        	    case GET_PROG :
-        	    	              double prog = serv.getInitProgress();
-        	    	              req.setdval(prog);
-        	    	              req.setrettype(RetID.DOUBLE);
-        	    	              break;
+        	    
         	    case GET_PICID:
         	    	              ArrayList<Long> list = serv.GetPicId(req.getclassid());
         	    	              req.setlist(list);
         	    	              req.setrettype(RetID.LONG_LIST);
         	    	              break;
+        	    	              
         	    case GET_IMAGE:
         	    	              byte[] gi = serv.RetrieveImg(req.getimageid());
         	    	              req.setbytes(gi);
         	    	              req.setrettype(RetID.BYTES);
         	    	              break;
+        	    	              
         	    case DEL_IMAGE:
         	    	              boolean di = serv.DeleteImg(req.getclassid(), req.getimageid());
         	    	              req.setboolval(di);
         	    	              req.setrettype(RetID.BOOL);
         	    	              break;
+        	    	              
         	    case ADD_IMAGE:
         	    	              boolean ai = serv.AddImg(req.getclassid(), req.getimageid(), req.getbytes());
         	    	              req.setboolval(ai);
         	    	              req.setrettype(RetID.BOOL);
         	    	              break;
+        	    	              
         	    case GET_DOMAIN:
         	    	              ArrayList<Domain> gd = serv.GetDomain();
         	    	              req.setdomlist(gd);
         	    	              req.setrettype(RetID.DOMAIN_LIST);
         	    	              break;
+        	    	              
         	    case GET_CLASS:
         	    	              ArrayList<SecondLevelClass> gc = serv.GetClasses(req.getdomid());
         	    	              req.setslclist(gc);
         	    	              req.setrettype(RetID.CLASS_LIST);
         	    	              break;
+        	    	              
         	    case SET_RBFKP:
         	    	              boolean sr = serv.SetRBFKernelParam(req.getdomid(), req.getc(), req.getg(), req.getmaxsample());
         	    	              req.setboolval(sr);
         	    	              req.setrettype(RetID.BOOL);
         	    	              break;
+        	    	              
         	    case SET_LKP:
         	    	              boolean sl = serv.SetLinearKernelParam(req.getdomid(), req.getc(), req.getmaxsample());
         	    	              req.setboolval(sl);
         	    	              req.setrettype(RetID.BOOL);
         	    	              break;
+        	    	              
         	    case GET_ATFN:
         	    	              int ga = serv.GetAutoTuningFoldNum(req.getdomid());
         	    	              req.setintval(ga);
         	    	              req.setrettype(RetID.INT);
         	    	              break;
+        	    	              
         	    case SET_ATFN:
         	    	              boolean sa = serv.SetAutoTuningFoldNum(req.getdomid(), req.getintval());
         	    	              req.setboolval(sa);
         	    	              req.setrettype(RetID.BOOL);
         	    	              break;
-        	    case GET_ATP:
-        	    	              double gap = serv.getAutoTuningProgress(req.getdomid());
-        	    	              req.setdval(gap);
-        	    	              req.setrettype(RetID.DOUBLE);
-        	    	              break;
-        	    case GET_CMA:
-				  	              double cma = serv.GetCurrentModelAccuracy(req.getdomid());
-				  	              req.setdval(cma);
-				  	              req.setrettype(RetID.DOUBLE);
-				  	              break;
-        	    case GET_ATI:
-        	    	              String gati = serv.getAutoTuningInfo(req.getdomid());
-        	    	              req.setStrval(gati);
-        	    	              req.setrettype(RetID.STRING);
-        	    	              break;
-        	    case GET_CMI:
-        	    				  MedicalParameter gcmi = serv.GetCurrentModelInfo(req.getdomid());
-        	    	              req.setmodinfo(gcmi);
-        	    	              req.setrettype(RetID.MOD_INFO);
-        	    	              break;
+        	
         	    case START_TUNE:
-        	    	              boolean st = serv.StartAutoTuning(req.getdomid());
-        	    	              req.setboolval(st);
-        	    	              req.setrettype(RetID.BOOL);
-        	    	              break;
+			        	    	try 
+								  {
+									imgService.StartTuningRequest(req.getdomid());
+							      } 
+								  catch (IOException e) 
+								  {
+									e.printStackTrace();
+								  }
+			        	    	
+			        	    	  req.bval = true;
+   				              	  req.setrettype(RetID.BOOL);
+					              break;
+					              
         	    case START_TRAIN:
-        	    	              boolean stt = serv.startTraining(req.getdomid());
-    	                          req.setboolval(stt);
-    	                          req.setrettype(RetID.BOOL);
-    	                          break;
-        	    case TRAIN_FINISH:
-        	    				  boolean tf = serv.isTrainingFinished(req.getdomid());
-        	    				  req.setboolval(tf);
-    	                          req.setrettype(RetID.BOOL);
-        	    				  break;
+    	                          try 
+								  {
+									imgService.StartTrainingRequest(req.getdomid());
+							      } 
+								  catch (IOException e) 
+								  {
+									e.printStackTrace();
+								  }
+    	                          
+    				              req.bval = true;
+    				              req.setrettype(RetID.BOOL);
+    				              break;
+    			
         	    case ENABLE_RBF:
         	                   	  boolean er = serv.enableRBFTuning(req.getdomid());
     	                          req.setboolval(er);
     	                          req.setrettype(RetID.BOOL);
     	                          break;
+    	                          
         	    case DISABLE_RBF:
                  	              boolean dr = serv.disableRBFTuning(req.getdomid());
                                   req.setboolval(dr);
                                   req.setrettype(RetID.BOOL);
                                   break;
+                                  
         	    case CHECK_RBF:
         	    	              boolean cr = serv.isRBFTuningEnabled(req.getdomid());
                                   req.setboolval(cr);
                                   req.setrettype(RetID.BOOL);
                                   break;
-        	    /*case SEARCH_SIM:
-        	    	              ArrayList<Long> ss = serv.SimilaritySearch(req.getbytes(), req.getintval());
-        	    	              req.setlist(ss);
-        	    	              req.setrettype(RetID.LONG_LIST);
-        	    	              break;*/
+                                  
         	    case SEARCH_SIM:
 								  try 
 								  {
@@ -323,11 +311,19 @@ public class MainServer {
 								  }
     				              req = null;
     				              break;
+    				              
         	    case GET_CLEST:
-        	    	              String gct = serv.classificationEstimation(req.getbytes(), req.getintval());
-        	    	              req.setStrval(gct);
-        	    	              req.setrettype(RetID.STRING);
-        	    	              break;
+			        	    	  try 
+								  {
+									imgService.ClassificationRequest(req.getbytes(), req.getdomid(), out, socket);
+							      } 
+								  catch (IOException e) 
+								  {
+									 e.printStackTrace();
+								  }
+					              req = null;
+					              break;
+        	    	              
         	    /* ***********************************   */
         	    /* Add rest of the misc. API's if needed */
         	    default:

@@ -8,11 +8,8 @@ import java.io.*;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import database.*;
-
-
+import datamining.PROB_ESTIMATION_RES;
 
 /**
  * @author pramod
@@ -22,9 +19,7 @@ public class CommunicationAPI {
 
 	private MessageObject query;
 	private ServerConnection scon;
-	/**
-	 * 
-	 */
+
 	public CommunicationAPI(String servIP, int servPort) throws IOException {
 		// TODO Auto-generated constructor stub
 	    this.init(servIP, servPort);
@@ -65,7 +60,6 @@ public class CommunicationAPI {
 			}
 			
 			return res;
-			
 		}
 
 		public byte[] RetrieveImg(long nImgId) 
@@ -161,9 +155,6 @@ public class CommunicationAPI {
 			}
 			
 			return res;
-			
-	
-		
 		}
 
 		//second level classification
@@ -288,102 +279,6 @@ public class CommunicationAPI {
 			return res;
 		}
 		
-		public double getAutoTuningProgress(int nDomainId)
-		{
-			double res = 0.0;
-            query.settype(MsgId.GET_ATP);
-            query.setdomid(nDomainId);
-            query.setrettype(RetID.INVALID);
-			
-			try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.DOUBLE) {
-			    	 res = result.getdval();
-			     }
-			} catch (IOException e) {
-	
-				HandleException(e, MsgId.GET_ATP);
-			}
-			
-			return res;
-			
-		}
-		
-		public double getModelAccuracy(int nDomainId)
-		{
-			double res = 0.0;
-            query.settype(MsgId.GET_CMA);
-            query.setdomid(nDomainId);
-            query.setrettype(RetID.INVALID);
-			
-			try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.DOUBLE) {
-			    	 res = result.getdval();
-			     }
-			} catch (IOException e) {
-	
-				HandleException(e, MsgId.GET_CMA);
-			}
-			
-			return res;
-			
-		}
-		
-		public String getAutoTuningInfo(int nDomainId)
-		{
-			String res =  null;
-            query.settype(MsgId.GET_ATI);
-            query.setdomid(nDomainId);
-            query.setStrval(null);
-            query.setrettype(RetID.INVALID);
-			
-			try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.STRING) {
-			    	 res = result.getStrVal();
-			     }
-			} catch (IOException e) {
-				
-				HandleException(e, MsgId.GET_ATI);
-			}
-			
-			return res;
-		
-		}
-		
-		//not in the auto tuning process
-		public MedicalParameter GetCurrentModelInfo(int nDomainId)
-		{
-			MedicalParameter res =  null;
-            query.settype(MsgId.GET_CMI);
-            query.setdomid(nDomainId);
-            query.setmodinfo(null);
-            query.setrettype(RetID.INVALID);
-			
-			try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.MOD_INFO) {
-			    	 res = result.getmodelinfo();
-			     }
-			} catch (IOException e) {
-		
-				HandleException(e, MsgId.GET_CMI);
-			}
-			
-			return res;
-		}
-		
-		
-
 		public boolean StartAutoTuning(int nDomainId)
 		{
 			boolean res = false;
@@ -391,13 +286,14 @@ public class CommunicationAPI {
             query.setdomid(nDomainId);
             query.setrettype(RetID.INVALID);
 			
-			try {
+			try 
+			{
 			     scon.sendmsg(query);
 			     MessageObject result = (MessageObject) scon.getmsg(query);
 			     
 			     if (result.getrettype() == RetID.BOOL) {
 			    	 res = result.getboolval();
-		     }
+			     }
 			} catch (IOException e) {
 			
 				HandleException(e, MsgId.START_TUNE);
@@ -427,28 +323,6 @@ public class CommunicationAPI {
 			
 			return res;
 			
-		}
-		
-		public boolean isTrainingFinished(int nDomainId)
-		{
-			boolean res = false;
-            query.settype(MsgId.TRAIN_FINISH);
-            query.setdomid(nDomainId);
-            query.setrettype(RetID.INVALID);
-			
-			try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.BOOL) {
-			    	 res = result.getboolval();
-			     }
-			} catch (IOException e) {
-				
-				HandleException(e, MsgId.START_TRAIN);
-			}
-			
-			return res;
 		}
 		
 		public boolean enableRBFTuning(int nDomainId)
@@ -545,9 +419,9 @@ public class CommunicationAPI {
 		}
 
 		//String format:  classID+¡±:¡±+classification percentage, ranked by percentage
-		public String classificationEstimation(byte[] img, int nDomainId)
+		public PROB_ESTIMATION_RES classificationEstimation(byte[] img, int nDomainId)
 		{
-			String res = null;
+			PROB_ESTIMATION_RES res = null;
 			query.setbytes(img);
 			query.setdomid(nDomainId);
 			query.settype(MsgId.GET_CLEST);
@@ -558,38 +432,16 @@ public class CommunicationAPI {
 			     scon.sendmsg(query);
 			     MessageObject result = (MessageObject) scon.getmsg(query);
 			     
-			     if (result.getrettype() == RetID.STRING) {
-			    	 res = result.getStrVal();
+			     if (result.getrettype() == RetID.CLS_RES) {
+			    	 res = result.classifyRes;
 			     }
 			} catch (IOException e) {
-				
 				HandleException(e, MsgId.GET_CLEST);
 			}
 			
 			return res;
 		}
 		
-		//================== Initialize status API =================================
-		public double getInitProgress()
-		{
-		   double res = 0.0;
-		   
-		   query.settype(MsgId.GET_PROG);
-		   query.setrettype(RetID.INVALID);
-		   
-		   try {
-			     scon.sendmsg(query);
-			     MessageObject result = (MessageObject) scon.getmsg(query);
-			     
-			     if (result.getrettype() == RetID.DOUBLE) {
-			    	 res = result.getdval();
-			     }
-			} catch (IOException e) {
-				HandleException(e, MsgId.GET_PROG);
-			}
-			
-			return res;
-		}
 		/************************************************************************************/
 		
 		private void HandleException (IOException e, MsgId id) {

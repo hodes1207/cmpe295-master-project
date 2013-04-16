@@ -43,7 +43,7 @@ public class Normalizer {
 		if (null == vec || null == m_rec || m_rec.length != 2*vec.length)
 			return;
 		
-		int nLow = 0;
+		int nLow = -1;
 		int nUp = 1;
 		
 		for (int i = 0; i < vec.length; i++)

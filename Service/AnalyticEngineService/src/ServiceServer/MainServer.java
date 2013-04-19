@@ -300,6 +300,59 @@ public class MainServer {
                                   req.setrettype(RetID.BOOL);
                                   break;
                                   
+        	    case GET_IMGSERV:
+								 try 
+								 {
+									 req.imgServInfo = imgService.getImgServerInfo();
+								 } 
+								 catch (IOException e1) 
+								 {
+									e1.printStackTrace();
+								 }
+								 
+				  	             req.setrettype(RetID.IMGSERV_LIST);
+				                 break;
+				                  
+        	    case GET_MODEL_ACCURACY:
+			        	    	  try 
+								  {
+									imgService.getModelAccuracyRequest
+									(req.getintval(), req.getdomid(), out, socket);
+							      } 
+								  catch (IOException e) 
+								  {
+									e.printStackTrace();
+								  }
+			        	    	  
+					              req = null;
+					              break;
+                                  
+        	    case GET_MODEL_TUNINGINFO:
+			        	    	  try 
+								  {
+									imgService.getTuningInfoRequest
+									(req.getintval(), req.getdomid(), out, socket);
+							      } 
+								  catch (IOException e) 
+								  {
+									e.printStackTrace();
+								  }
+					              req = null;
+					              break;
+  				  				  
+        	    case GET_MODEL_TRAININGINFO:
+			        	    	  try 
+								  {
+									imgService.getTrainingInfoRequest
+									(req.getintval(), req.getdomid(), out, socket);
+							      } 
+								  catch (IOException e) 
+								  {
+									e.printStackTrace();
+								  }
+					              req = null;
+					              break;
+        	    				  
         	    case SEARCH_SIM:
 								  try 
 								  {

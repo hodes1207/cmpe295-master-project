@@ -1,6 +1,8 @@
 package ServiceInterface;
 
 import java.util.ArrayList;
+
+import MessageLayer.ImgServerInfo;
 import imgproc.ImgFeatureExtractionWrapper;
 import database.*;
 

@@ -8,6 +8,7 @@ import datamining.PROB_ESTIMATION_RES;
 import java.util.*;
 import java.io.*;
 
+
 /**
  * @author pramod
  *
@@ -15,18 +16,17 @@ import java.io.*;
 public class MessageObject implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-
+	
 	// The clientid is unique to every client connection and is used to
 	// identify multiple client connections.
 	private static int clientid = new Random().hashCode();
-	
 	public long len;
 	public MsgId qtype;
-	public ArrayList<Long> longlist;
-	public ArrayList<Domain> domlist;
-	public ArrayList<SecondLevelClass> slclist;
-	public byte[] retbyte;
-	public String sval;
+	public ArrayList<Long> longlist = null;
+	public ArrayList<Domain> domlist = null;
+	public ArrayList<SecondLevelClass> slclist = null;
+	public byte[] retbyte = null;
+	public String sval = null;
 	public RetID rtype;
 	public int domid;
 	public int classid;
@@ -36,10 +36,11 @@ public class MessageObject implements Serializable {
 	public int ival;
 	public double dval;
 	public double rbf_c, rbf_g;
-	public MedicalParameter modInfo;
-	public PROB_ESTIMATION_RES classifyRes;
-
-
+	public double modelAccuracy;
+	public boolean trainingInProgress;
+	public ArrayList<ImgServerInfo> imgServInfo = null;
+	public PROB_ESTIMATION_RES classifyRes = null;
+	
 	/**
 	 * 
 	 */
@@ -60,14 +61,6 @@ public class MessageObject implements Serializable {
 		this.qtype = MsgId.UNINIT;
 		this.len = 0;
 		this.rtype = RetID.INVALID;
-	}
-	
-	public void setmodinfo(MedicalParameter info) {
-		modInfo = info;
-	}
-	
-	public MedicalParameter getmodelinfo() {
-		return modInfo;
 	}
 	
 	public void setclassid(int id) {

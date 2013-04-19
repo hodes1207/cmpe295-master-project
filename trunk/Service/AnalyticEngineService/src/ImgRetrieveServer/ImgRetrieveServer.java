@@ -28,6 +28,7 @@ import MessageLayer.ClassifyResp;
 import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgRetrieveInitMsg;
 import MessageLayer.ImgServMsg;
+import MessageLayer.ImgServMsg.MsgType;
 import MessageLayer.ImgServResp;
 import MessageLayer.KNNSearchResp;
 import ServiceInterface.ImgFeatureComparator;
@@ -217,17 +218,17 @@ public class ImgRetrieveServer {
 						
 					KNNSearchResp knnResp = new KNNSearchResp();
 					knnResp.k = inMsg.k;
-					knnResp.msgId = inMsg.msgId;
 					knnResp.res = searchKNN(vectors, inMsg.k);
 					
 					ImgServResp resp = new ImgServResp(ImgServMsg.MsgType.SIM_SEARCH);
 					resp.searchResp = knnResp;
+					resp.msgId = inMsg.msgId;
 						
 					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
 					socOut.writeObject(resp);
 					
 					System.out.print("Search result sent, msg id: ");
-					System.out.println(knnResp.msgId);
+					System.out.println(resp.msgId);
 				}
 				else if (inMsg.msgType == ImgServMsg.MsgType.CLASSIFICATION)
 				{
@@ -245,11 +246,11 @@ public class ImgRetrieveServer {
 					PROB_ESTIMATION_RES res = m_modelMgr.classify(featureV, inMsg.domId);
 					
 					ClassifyResp clsResp = new ClassifyResp();
-					clsResp.msgId = inMsg.msgId;
 					clsResp.clsRes = res;
 					
 					ImgServResp resp = new ImgServResp(ImgServMsg.MsgType.CLASSIFICATION);
 					resp.clsResp = clsResp;
+					resp.msgId = inMsg.msgId;
 					
 					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
 					socOut.writeObject(resp);
@@ -328,6 +329,48 @@ public class ImgRetrieveServer {
 						m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet, true);
 					else
 						m_modelMgr.requestTuning(nDomainId, testDataSet, buildDataSet, false);
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.GET_MODEL_ACCURACY)
+				{
+					ImgServResp resp = new ImgServResp(MsgType.GET_MODEL_ACCURACY);
+					resp.msgId = inMsg.msgId;
+					resp.modelAccuracy = m_modelMgr.getModelAccuracy(inMsg.domId);
+					
+					System.out.print("Model accuracy: ");
+					System.out.println(resp.modelAccuracy);
+					
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
+					
+					System.out.println("Model accuracy result sent");
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.GET_MODEL_TRAININGINFO)
+				{
+					ImgServResp resp = new ImgServResp(MsgType.GET_MODEL_TRAININGINFO);
+					resp.msgId = inMsg.msgId;
+					resp.trainingInProgress = m_modelMgr.isTrainingInProgress(inMsg.domId);
+					
+					System.out.print("Model in progress: ");
+					System.out.println(resp.trainingInProgress);
+					
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
+					
+					System.out.println("Model training information sent");
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.GET_MODEL_TUNINGINFO)
+				{
+					ImgServResp resp = new ImgServResp(MsgType.GET_MODEL_TUNINGINFO);
+					resp.msgId = inMsg.msgId;
+					resp.tuningInfo = m_modelMgr.getTuningInfo(inMsg.domId);
+					
+					System.out.print("Model tuning information: ");
+					System.out.println(resp.tuningInfo);
+					
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
+					
+					System.out.println("Model tuning information sent");
 				}
 			}
 		} 

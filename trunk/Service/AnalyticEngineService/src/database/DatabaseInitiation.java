@@ -15,15 +15,11 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.ektorp.AttachmentInputStream;
 import org.ektorp.CouchDbConnector;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import ImgRetrieveServer.ModelManager;
 
 public class DatabaseInitiation 

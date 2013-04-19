@@ -3,6 +3,8 @@ import java.io.*;
 
 public class MedicalParameter implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	public boolean bRBF;
 	public double dbRBF_c;
 	public double dbRBF_g;

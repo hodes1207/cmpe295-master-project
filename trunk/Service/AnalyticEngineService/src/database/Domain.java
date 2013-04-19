@@ -7,6 +7,8 @@ import org.codehaus.jackson.annotate.JsonProperty;
 @JsonIgnoreProperties({"id", "revision"})
 public class Domain implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+
 	@JsonProperty("_id")
 	public String id;
 

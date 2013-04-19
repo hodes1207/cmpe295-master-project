@@ -13,8 +13,13 @@ public class ImgServResp implements Serializable
 		msgType = type;
 	}
 
+	public int msgId = -1;
 	public MsgType msgType = ImgServMsg.MsgType.UNINIT;
 	
 	public ClassifyResp clsResp = null;
 	public KNNSearchResp searchResp = null;
+
+	public double modelAccuracy = 0.0;
+	public String tuningInfo = "Error, message no assigned";
+	public boolean trainingInProgress = false;
 }

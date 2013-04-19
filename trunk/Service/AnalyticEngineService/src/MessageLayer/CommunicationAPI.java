@@ -442,6 +442,108 @@ public class CommunicationAPI {
 			return res;
 		}
 		
+		public ArrayList<ImgServerInfo> getImgServerInfo()
+		{
+			ArrayList<ImgServerInfo> ret = null;
+            query.settype(MsgId.GET_IMGSERV);
+            query.setrettype(RetID.INVALID);
+			
+			try {
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			     
+			     if (result.getrettype() == RetID.IMGSERV_LIST) 
+			     {
+			    	 ret = result.imgServInfo;
+			     }
+			} catch (IOException e) {
+				
+				HandleException(e, MsgId.GET_IMGSERV);
+			}
+			
+			return ret;
+		}
+
+		//all function below returns true if api call success, 
+		//false if api call failed (usually due to connection failure of image  server)
+		//accuracy[0] is the accuracy of the specific model
+		public boolean getModelAccuracy(int serverIndex, int modleId, double[] accuracy)
+		{
+            query.settype(MsgId.GET_MODEL_ACCURACY);
+            query.setdomid(modleId);
+            query.setintval(serverIndex);
+            query.setrettype(RetID.INVALID);
+			
+			try {
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			    
+			     if (result.getrettype() == RetID.TIMEOUT)
+			    	 return false;
+			     
+			     accuracy[0] = result.modelAccuracy;
+			    
+			} catch (IOException e) {
+				
+				HandleException(e, MsgId.GET_MODEL_ACCURACY);
+			}
+			
+			return true;
+		}
+
+		
+		public boolean getTuningInfo(int serverIndex, int modleId, String[] info)
+		{
+            query.settype(MsgId.GET_MODEL_TUNINGINFO);
+            query.setintval(serverIndex);
+            query.setdomid(modleId);
+            query.setrettype(RetID.INVALID);
+			
+			try 
+			{
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			     
+			     if (result.getrettype() == RetID.TIMEOUT)
+			    	 return false;
+			     
+			     info[0] = result.getstring();
+			} 
+			catch (IOException e) 
+			{
+				HandleException(e, MsgId.GET_MODEL_TUNINGINFO);
+			}
+			
+			return true;
+		}
+
+		//info[0] ==> true: training in progress, false: not in  progress
+		
+		public boolean getTrainingInfo(int serverIndex, int modleId, boolean[] info)
+		{
+            query.settype(MsgId.GET_MODEL_TRAININGINFO);
+            query.setdomid(modleId);
+            query.setintval(serverIndex);
+            query.setrettype(RetID.INVALID);
+			
+			try 
+			{
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			     
+			     if (result.getrettype() == RetID.TIMEOUT)
+			    	 return false;
+			    
+			     info[0] = result.trainingInProgress;
+			} 
+			catch (IOException e) 
+			{
+				HandleException(e, MsgId.GET_MODEL_TRAININGINFO);
+			}
+			
+			return true;
+		}
+		
 		/************************************************************************************/
 		
 		private void HandleException (IOException e, MsgId id) {

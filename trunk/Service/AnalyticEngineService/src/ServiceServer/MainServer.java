@@ -52,7 +52,7 @@ public class MainServer {
       initServer(strCfgFile);
 
       ServerSocket listener = new ServerSocket(PORT, 10);    
-      System.out.println("The image processing server is listening on port " + PORT);    
+      System.out.println("The service control server is listening on port " + PORT);    
       
       try {           
     	      while (!listener.isClosed()) 

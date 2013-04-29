@@ -37,7 +37,10 @@ public class ImgRetrievalService
 					medicalImageDBName, DBUrl);
 			
 			serverChnl = ServerSocketChannel.open();
-			InetSocketAddress isa = new InetSocketAddress("127.0.0.1", imgListenPort);
+			InetSocketAddress isa = new InetSocketAddress(imgListenPort);
+			
+			System.out.println("Image service listening on port: " + imgListenPort);
+			
 			serverChnl.socket().bind(isa);
 			serverChnl.configureBlocking(false);
 			
@@ -90,6 +93,8 @@ public class ImgRetrievalService
 								break;
 							}
 						}
+						
+						System.out.println("Image server connected, index: " + msg.curIndex );
 
 						ObjectOutputStream oos = new ObjectOutputStream(sc.socket()
 								.getOutputStream());

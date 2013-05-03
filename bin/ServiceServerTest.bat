@@ -1,0 +1,1 @@
+java -cp Servers.jar ServiceServer.MainServer ServiceServTest_ini.xml

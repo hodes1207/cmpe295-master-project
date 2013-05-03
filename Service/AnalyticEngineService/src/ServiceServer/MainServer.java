@@ -356,7 +356,8 @@ public class MainServer {
         	    case SEARCH_SIM:
 								  try 
 								  {
-									imgService.SimilaritySearchRequest(req.getbytes(), req.getintval(), out, socket);
+									imgService.SimilaritySearchRequest(req.getbytes(), req.getintval(), 
+											req.getdomid(), out, socket);
 							      } 
 								  catch (IOException e) 
 								  {

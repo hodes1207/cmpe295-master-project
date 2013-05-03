@@ -322,7 +322,7 @@ public class ImgRetrievalService
 		resProcThrd.start();
 	}
 	
-	public void SimilaritySearchRequest(byte[] byteImg, int nNum, ObjectOutputStream out, Socket soc) 
+	public void SimilaritySearchRequest(byte[] byteImg, int nNum, int domainId, ObjectOutputStream out, Socket soc) 
 			throws IOException
 	{
 		//get normalized vector
@@ -331,6 +331,7 @@ public class ImgRetrievalService
 		msg.byteImg = byteImg;
 		msg.k = nNum;
 		msg.msgId = ran.nextInt();
+		msg.domId = domainId;
 			
 		ReqInfo info = new ReqInfo();
 		info.out = out;
@@ -342,7 +343,7 @@ public class ImgRetrievalService
 			pendingMsg.put(msg.msgId, info);
 			broadCastMsg(msg);
 			
-			System.out.print("Broadcasting SIM_SEARCH to img servers, ");
+			System.out.print("Broadcasting SIM_SEARCH to image servers, ");
 			System.out.print("msg id: ");
 			System.out.println(msg.msgId);
 		}
@@ -545,9 +546,14 @@ public class ImgRetrievalService
 					
 			if (pendingMsg.containsKey(nId))
 			{
-				if (imgRetreivalRes.get(nId).res.size() >= imgServers.size()
-						|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*10)
+				boolean timeout = timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*10;
+				if (imgRetreivalRes.get(nId).res.size() >= imgServers.size() || timeout)
 				{
+					if (!timeout)
+						System.out.println("All similarity results got");
+					else
+						System.out.println("Similarity search time out");
+						
 					//merge the result
 					ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
 					int k = imgRetreivalRes.get(nId).k;
@@ -590,14 +596,14 @@ public class ImgRetrievalService
 					}
 						
 					pendingMsg.remove(nId);
-					imgRetreivalRes.remove(nId);
+					iterator.remove();
 					
 					System.out.println("Image retrieval result merged and sent.......");
 				}
 			}
 			else
 			{
-				imgRetreivalRes.remove(nId);
+				iterator.remove();
 			}
 		}
 	}
@@ -612,9 +618,14 @@ public class ImgRetrievalService
 			
 			if (pendingMsg.containsKey(nId))
 			{
-				if (imgClassifyRes.get(nId).size() >= imgServers.size()
-						|| timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*10)
+				boolean timeout = timenow.getTime() - pendingMsg.get(nId).time.getTime() > 1000*10;
+				if (imgClassifyRes.get(nId).size() >= imgServers.size() || timeout)
 				{
+					if (!timeout)
+						System.out.println("All classification results got");
+					else
+						System.out.println("Classification time out");
+					
 					//merge the result
 					ArrayList<PROB_ESTIMATION_RES> res = imgClassifyRes.get(nId);
 					HashMap<Integer, Integer> recNum = new HashMap<Integer, Integer>();
@@ -673,14 +684,14 @@ public class ImgRetrievalService
 					}
 						
 					pendingMsg.remove(nId);
-					imgClassifyRes.remove(nId);
+					iterator.remove();
 						
 					System.out.println("Image classification results merged and sent.......");
 				}
 			}
 			else
 			{
-				imgClassifyRes.remove(nId);
+				iterator.remove();
 			}
 		}
 	}

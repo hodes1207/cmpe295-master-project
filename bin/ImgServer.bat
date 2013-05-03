@@ -1,1 +1,1 @@
-java -cp Servers.jar ImgRetrieveServer.MainServer ImgRetrieveServ_ini.xml
+java -Xms512m -Xmx1152m -cp Servers.jar ImgRetrieveServer.MainServer ImgRetrieveServ_ini.xml

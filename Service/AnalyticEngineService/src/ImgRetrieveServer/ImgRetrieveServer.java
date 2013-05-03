@@ -218,7 +218,7 @@ public class ImgRetrieveServer {
 						
 					KNNSearchResp knnResp = new KNNSearchResp();
 					knnResp.k = inMsg.k;
-					knnResp.res = searchKNN(vectors, inMsg.k);
+					knnResp.res = searchKNN(vectors, inMsg.k, inMsg.domId);
 					
 					ImgServResp resp = new ImgServResp(ImgServMsg.MsgType.SIM_SEARCH);
 					resp.searchResp = knnResp;
@@ -383,7 +383,7 @@ public class ImgRetrieveServer {
 	}
 	
 	//return sorted closest k images
-	private ArrayList<ImgDisResEntry> searchKNN(double[] vectors, int k)
+	private ArrayList<ImgDisResEntry> searchKNN(double[] vectors, int k, int domainId)
 	{
 		if (null == vectors || vectors.length != ImgFeatureExtractionWrapper.TOTAL_DIM || k <= 0)
 			return new ArrayList<ImgDisResEntry>();
@@ -398,6 +398,9 @@ public class ImgRetrieveServer {
 		Queue<MedicalImage> knnQue =  new PriorityQueue<MedicalImage>(k, comp); 
 		for (int i = 0; i < allImgs.size(); i++)
 		{
+			if (domainId != ModelManager.WHOLE_DOMAIN_ID && allImgs.get(i).domainId != domainId)
+				continue;
+			
 			if (knnQue.size() < k)
 				knnQue.add(allImgs.get(i));
 			else
@@ -463,7 +466,7 @@ public class ImgRetrieveServer {
 			while (true)
 			{
 				ArrayList<MedicalImage> tmpList = 
-						databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false, 
+						databaseAPI.getInstance().RetrieveImageList(clses.get(k).classId, false,
 						strStDocId, limit);
 				
 				if (null != tmpList && tmpList.size() > 0)

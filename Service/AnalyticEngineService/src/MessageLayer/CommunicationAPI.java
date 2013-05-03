@@ -393,12 +393,13 @@ public class CommunicationAPI {
 
 		//================== Recommendation API ====================================
 		//return a list of picture ID (nNum pictures)
-		public ArrayList<Long> SimilaritySearch(byte[] byteImg, int nNum)
+		public ArrayList<Long> SimilaritySearch(byte[] byteImg, int nNum, int domainId)
 		{
 			ArrayList<Long> res = null;
 			query.setbytes(byteImg);
 			query.setintval(nNum);
 			query.setlist(null);
+			query.setdomid(domainId);
 			
 			query.settype(MsgId.SEARCH_SIM);
 			query.setrettype(RetID.INVALID);

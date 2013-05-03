@@ -1,1 +1,1 @@
-java -cp Servers.jar database.DatabaseInitiation testdb_ini.xml 2
+java -cp Servers.jar database.DatabaseInitiation db_ini.xml 1

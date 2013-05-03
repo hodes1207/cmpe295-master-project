@@ -1,3 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<InitInfo classDBName="classInfoTest" domainDBName = "domainInfoTest" medicalImageDBName = "medicalImageTest" DBUrl="http://localhost:5984" servicePort="3456" imgServListenPort="6734" imgServNum="3">
+<InitInfo classDBName="classInfo" domainDBName = "domainInfo" medicalImageDBName = "medicalImage" DBUrl="http://localhost:5984" servicePort="3456" imgServListenPort="6734" imgServNum="1">
 </InitInfo>

@@ -14,37 +14,72 @@ public class ServiceServerTest {
 	
 	public static void main(String[] args) throws IOException, InterruptedException
 	{
-		CommunicationAPI comAPI = new CommunicationAPI("127.0.0.1", 3456);
+		String ip = "127.0.0.1";
+		int port = 3456;
+		if (args.length == 2)
+		{
+			ip = args[0];
+			port = Integer.parseInt(args[1]);
+		}
 		
+		CommunicationAPI comAPI = new CommunicationAPI(ip, port);
+		
+		long startTime, endTime;
+		
+		startTime = System.currentTimeMillis();
 		ArrayList<Domain> doms = comAPI.GetDomain();
-		//comAPI.SetLinearKernelParam(1, 0.5, 1001);
-		//Thread.sleep(20000);
+		endTime = System.currentTimeMillis();
+		System.out.println("GetDomain() : " + (endTime - startTime));
 		
+		startTime = System.currentTimeMillis();
+		comAPI.SetLinearKernelParam(1, 0.5, 1001);
+		endTime = System.currentTimeMillis();
+		System.out.println("SetLinearKernelParam() : " + (endTime - startTime));
+		
+		startTime = System.currentTimeMillis();
 		ArrayList<SecondLevelClass> clses = comAPI.GetClasses(0);
+		endTime = System.currentTimeMillis();
+		System.out.println("GetClasses() : " + (endTime - startTime));
+		
+		startTime = System.currentTimeMillis();
 		ArrayList<Long> picIds = comAPI.GetPicId((1 << 16) + 1);
+		endTime = System.currentTimeMillis();
+		System.out.println("GetPicId() : " + (endTime - startTime));
 
-		/*for(int i = 0; i < picIds.size(); i++)
-		{
-			byte[] content = comAPI.RetrieveImg(picIds.get(0));
-			System.out.println("content "+i+": "+content);
-		}*/
-		
+		startTime = System.currentTimeMillis();
 		byte[] content = comAPI.RetrieveImg(picIds.get(33));
+		endTime = System.currentTimeMillis();
+		System.out.println("RetrieveImg() : " + (endTime - startTime));
 		
-		//double dbTmp = comAPI.getModelAccuracy(1);
-		/*for (int i = 0; i < 1000; i++)
-		{
-			System.out.println(i);
-			PROB_ESTIMATION_RES info = comAPI.classificationEstimation(content, 1);
-			ArrayList<Long> pics = comAPI.SimilaritySearch(content, 100);
-		}*/
+		startTime = System.currentTimeMillis();
+		PROB_ESTIMATION_RES info = comAPI.classificationEstimation(content, 1);
+		endTime = System.currentTimeMillis();
+		System.out.println("classificationEstimation() : " + (endTime - startTime));
 		
+		startTime = System.currentTimeMillis();
+		ArrayList<Long> pics = comAPI.SimilaritySearch(content, 100, 1);
+		endTime = System.currentTimeMillis();
+		System.out.println("SimilaritySearch() : " + (endTime - startTime));
+		
+		startTime = System.currentTimeMillis();
 		ArrayList<ImgServerInfo> infos = comAPI.getImgServerInfo();
+		endTime = System.currentTimeMillis();
+		System.out.println("getImgServerInfo() : " + (endTime - startTime));
 		
-		comAPI.startTraining(1);
-		comAPI.StartAutoTuning(1);
+		startTime = System.currentTimeMillis();
+		boolean b = comAPI.AddImg((1 << 16) + 1, 1234567, content);
+		endTime = System.currentTimeMillis();
+		System.out.println("AddImg() : " + (endTime - startTime));
 		
-		double[] accuracy = new double[1];
+		startTime = System.currentTimeMillis();
+		b = comAPI.DeleteImg((1 << 16) + 1, 1234567);
+		endTime = System.currentTimeMillis();
+		System.out.println("DeleteImg() : " + (endTime - startTime));
+		
+		//comAPI.startTraining(1);
+		//comAPI.StartAutoTuning(1);
+		
+		/*double[] accuracy = new double[1];
 		boolean b1 = comAPI.getModelAccuracy(1, 1, accuracy);
 		
 		boolean res[] = new boolean[1];

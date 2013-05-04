@@ -18,6 +18,7 @@ public class ImgServResp implements Serializable
 	
 	public ClassifyResp clsResp = null;
 	public KNNSearchResp searchResp = null;
+	public SysPerfInfo perfInfo = null;
 
 	public double modelAccuracy = 0.0;
 	public String tuningInfo = "Error, message no assigned";

@@ -26,6 +26,7 @@ public enum MsgId {
     GET_ATFN,   // Get auto tuning fold number
     SET_ATFN,   // Set auto tuning fold number
     GET_CMI,    // Get Current model info
+    GET_PERF_INFO, // Get image server performance information
     START_TUNE, // Start auto tuning
     STOP_TUNE,  // Stop auto tuning
     START_TRAIN,// Start Training

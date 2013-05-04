@@ -339,6 +339,19 @@ public class MainServer {
 								  }
 					              req = null;
 					              break;
+					              
+        	    case GET_PERF_INFO:
+				      	    	  try 
+									  {
+										imgService.getSysPerfInfo
+										(req.getintval(), out, socket);
+								      } 
+									  catch (IOException e) 
+									  {
+										e.printStackTrace();
+									  }
+						              req = null;
+						              break;
   				  				  
         	    case GET_MODEL_TRAININGINFO:
 			        	    	  try 

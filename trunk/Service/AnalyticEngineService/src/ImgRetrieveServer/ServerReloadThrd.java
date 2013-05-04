@@ -1,7 +1,5 @@
 package ImgRetrieveServer;
 
-import java.io.IOException;
-
 public class ServerReloadThrd extends Thread
 {
 	public ServerReloadThrd(ImgRetrieveServer s)
@@ -11,18 +9,7 @@ public class ServerReloadThrd extends Thread
 	
 	public void run()
 	{
-		try 
-		{
-			serv.reloadThrdFunc();
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		} 
-		catch (InterruptedException e) 
-		{
-			e.printStackTrace();
-		}
+		serv.reloadThrdFunc();
 	}
 	
 	private ImgRetrieveServer serv = null;

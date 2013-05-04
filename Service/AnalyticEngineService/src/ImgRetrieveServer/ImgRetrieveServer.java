@@ -31,7 +31,11 @@ import MessageLayer.ImgServMsg;
 import MessageLayer.ImgServMsg.MsgType;
 import MessageLayer.ImgServResp;
 import MessageLayer.KNNSearchResp;
+import MessageLayer.SysPerfInfo;
 import ServiceInterface.ImgFeatureComparator;
+import SystemMonitor.IMonitorService;
+import SystemMonitor.MonitorInfoBean;
+import SystemMonitor.MonitorServiceImpl;
 
 import database.*;
 import datamining.CLASSIFY_ENTITY;
@@ -167,21 +171,35 @@ public class ImgRetrieveServer {
 		threadSignal.await();
 	}
 	
-	void reloadThrdFunc() throws IOException, InterruptedException
+	void reloadThrdFunc()
 	{
 		while (true)
 		{
 			imgLock.lock();
-			boolean timeout = !imgConV.await(reloadhours, TimeUnit.HOURS);
+			boolean timeout = false;
+			try {
+				timeout = !imgConV.await(reloadhours, TimeUnit.HOURS);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			
 			imgLock.unlock();
 			
 			if (!timeout)
 				break;
 			
 			bStopWorker = true;
-			soc.close();
+			try {
+				soc.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			
-			workThrd.join();
+			try {
+				workThrd.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			
 			//reset members
 			allImgs = new ArrayList<MedicalImage>();
@@ -366,6 +384,34 @@ public class ImgRetrieveServer {
 					
 					System.out.print("Model tuning information: ");
 					System.out.println(resp.tuningInfo);
+					
+					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
+					socOut.writeObject(resp);
+					
+					System.out.println("Model tuning information sent");
+				}
+				else if (inMsg.msgType == ImgServMsg.MsgType.SYS_PERF_INFO)
+				{
+					ImgServResp resp = new ImgServResp(MsgType.SYS_PERF_INFO);
+					resp.msgId = inMsg.msgId;
+					
+					IMonitorService service = new MonitorServiceImpl();
+					MonitorInfoBean monitorInfo = new MonitorInfoBean();
+					try {
+						monitorInfo = service.getMonitorInfoBean();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+					resp.perfInfo = new SysPerfInfo();
+					resp.perfInfo.cpuPercent = monitorInfo.getCpuRatio();
+					resp.perfInfo.freeJVMMem = monitorInfo.getFreeMemory();
+					resp.perfInfo.maxJVMMem = monitorInfo.getMaxMemory();
+					resp.perfInfo.totalJVMMem = monitorInfo.getTotalMemory();
+					resp.perfInfo.thrdNum = monitorInfo.getTotalThread();
+					resp.perfInfo.osName = monitorInfo.getOsName();
+					
+					System.out.print("Get system performance information .... ");
 					
 					ObjectOutputStream socOut = new ObjectOutputStream(soc.getOutputStream());
 					socOut.writeObject(resp);

@@ -12,7 +12,8 @@ public class ImgServerMsgThrd  extends Thread
 	
 	public void run()
 	{
-		try {
+		try 
+		{
 			serv.imgServMsgThrdFunc();
 		} catch (IOException e) 
 		{

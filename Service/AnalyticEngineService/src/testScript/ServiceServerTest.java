@@ -8,7 +8,9 @@ import database.SecondLevelClass;
 import datamining.PROB_ESTIMATION_RES;
 
 import MessageLayer.CommunicationAPI;
+import MessageLayer.ImgDisResEntry;
 import MessageLayer.ImgServerInfo;
+import MessageLayer.SysPerfInfo;
 
 public class ServiceServerTest {
 	
@@ -24,9 +26,16 @@ public class ServiceServerTest {
 		
 		CommunicationAPI comAPI = new CommunicationAPI(ip, port);
 		
-		long startTime, endTime;
+		comAPI.StartAutoTuning(1);
 		
+		long startTime, endTime;
 		startTime = System.currentTimeMillis();
+		SysPerfInfo[] info = new SysPerfInfo[1];
+		boolean bres = comAPI.getSysPerfInfo(2, info);
+		endTime = System.currentTimeMillis();
+		System.out.println("GetDomain() : " + (endTime - startTime));
+		
+		/*startTime = System.currentTimeMillis();
 		ArrayList<Domain> doms = comAPI.GetDomain();
 		endTime = System.currentTimeMillis();
 		System.out.println("GetDomain() : " + (endTime - startTime));
@@ -57,7 +66,7 @@ public class ServiceServerTest {
 		System.out.println("classificationEstimation() : " + (endTime - startTime));
 		
 		startTime = System.currentTimeMillis();
-		ArrayList<Long> pics = comAPI.SimilaritySearch(content, 100, 1);
+		ArrayList<ImgDisResEntry> pics = comAPI.SimilaritySearch(content, 100, 1);
 		endTime = System.currentTimeMillis();
 		System.out.println("SimilaritySearch() : " + (endTime - startTime));
 		
@@ -77,7 +86,21 @@ public class ServiceServerTest {
 		System.out.println("DeleteImg() : " + (endTime - startTime));
 		
 		//comAPI.startTraining(1);
-		//comAPI.StartAutoTuning(1);
+		comAPI.StartAutoTuning(1);
+		
+		for (int i = 0; i < 1000; i++)
+		{
+			String[] str = new String[1];
+			boolean bret = comAPI.getTuningInfo(2, 1, str);
+			
+			if (bret)
+				System.out.println("Return true");
+			else
+				System.out.println("Return false");
+			System.out.println(str[0]);
+			
+			Thread.sleep(1000);
+		}
 		
 		/*double[] accuracy = new double[1];
 		boolean b1 = comAPI.getModelAccuracy(1, 1, accuracy);

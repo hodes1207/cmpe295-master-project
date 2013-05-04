@@ -21,7 +21,7 @@ public class CommunicationAPI {
 	private ServerConnection scon;
 
 	public CommunicationAPI(String servIP, int servPort) throws IOException {
-		// TODO Auto-generated constructor stub
+		
 	    this.init(servIP, servPort);
 	}
 	
@@ -393,9 +393,9 @@ public class CommunicationAPI {
 
 		//================== Recommendation API ====================================
 		//return a list of picture ID (nNum pictures)
-		public ArrayList<Long> SimilaritySearch(byte[] byteImg, int nNum, int domainId)
+		public ArrayList<ImgDisResEntry> SimilaritySearch(byte[] byteImg, int nNum, int domainId)
 		{
-			ArrayList<Long> res = null;
+			ArrayList<ImgDisResEntry> res = null;
 			query.setbytes(byteImg);
 			query.setintval(nNum);
 			query.setlist(null);
@@ -408,8 +408,8 @@ public class CommunicationAPI {
 			     scon.sendmsg(query);
 			     MessageObject result = (MessageObject) scon.getmsg(query);
 			     
-			     if (result.getrettype() == RetID.LONG_LIST) {
-			    	 res = result.getlist();
+			     if (result.getrettype() == RetID.IMG_DIS_LIST) {
+			    	 res = result.imgDisList;
 			     }
 			} catch (IOException e) {
 				
@@ -491,7 +491,30 @@ public class CommunicationAPI {
 			
 			return true;
 		}
-
+		
+		public boolean getSysPerfInfo(int serverIndex, SysPerfInfo[] info)
+		{
+			query.settype(MsgId.GET_PERF_INFO);
+			query.setintval(serverIndex);
+			query.setrettype(RetID.INVALID);
+			
+			try 
+			{
+			     scon.sendmsg(query);
+			     MessageObject result = (MessageObject) scon.getmsg(query);
+			     
+			     if (result.getrettype() == RetID.TIMEOUT)
+			    	 return false;
+			     
+			     info[0] = result.sysInfo;
+			} 
+			catch (IOException e) 
+			{
+				HandleException(e, MsgId.GET_PERF_INFO);
+			}
+			
+			return true;
+		}
 		
 		public boolean getTuningInfo(int serverIndex, int modleId, String[] info)
 		{

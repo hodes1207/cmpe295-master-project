@@ -23,6 +23,7 @@ public class MessageObject implements Serializable {
 	public long len;
 	public MsgId qtype;
 	public ArrayList<Long> longlist = null;
+	public ArrayList<ImgDisResEntry> imgDisList = null;
 	public ArrayList<Domain> domlist = null;
 	public ArrayList<SecondLevelClass> slclist = null;
 	public byte[] retbyte = null;
@@ -40,6 +41,7 @@ public class MessageObject implements Serializable {
 	public boolean trainingInProgress;
 	public ArrayList<ImgServerInfo> imgServInfo = null;
 	public PROB_ESTIMATION_RES classifyRes = null;
+	public SysPerfInfo sysInfo = null;
 	
 	/**
 	 * 

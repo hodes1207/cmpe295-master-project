@@ -114,18 +114,17 @@ public class ImgRetrievalService
 						{
 							//extra select needed to cancel completely.
 							selector.selectNow();  
+							sc.configureBlocking(true);
+							if (!sc.isConnected())
+							{
+								sc.close();
+								removeSocket(sc);
+								continue;
+							}
 						} 
 						catch (IOException e) 
 						{
 							e.printStackTrace();
-						}
-						 
-						sc.configureBlocking(true);
-						if (!sc.isConnected())
-						{
-							sc.close();
-							removeSocket(sc);
-							continue;
 						}
 
 						try 
@@ -186,7 +185,8 @@ public class ImgRetrievalService
 							}
 							else if (resp.msgType == ImgServMsg.MsgType.GET_MODEL_ACCURACY ||
 										resp.msgType == ImgServMsg.MsgType.GET_MODEL_TRAININGINFO ||
-										resp.msgType == ImgServMsg.MsgType.GET_MODEL_TUNINGINFO)
+										resp.msgType == ImgServMsg.MsgType.GET_MODEL_TUNINGINFO || 
+										resp.msgType == ImgServMsg.MsgType.SYS_PERF_INFO)
 							{
 								//Send message back to client
 								int nId = resp.msgId;
@@ -197,6 +197,8 @@ public class ImgRetrievalService
 									
 									ObjectOutputStream out = pendingMsg.get(nId).out;
 									Socket soc = pendingMsg.get(nId).soc;
+									pendingMsg.remove(nId);
+									
 									if (soc.isConnected() && !soc.isClosed())
 									{
 										try 
@@ -234,6 +236,13 @@ public class ImgRetrievalService
 												System.out.print("Model tuning information: ");
 												System.out.println(resp.tuningInfo);
 											}
+											else if (resp.msgType == ImgServMsg.MsgType.SYS_PERF_INFO)
+											{
+												System.out.println("Receive SYS_PERF_INFO message from image server");
+												
+												obj.setrettype(RetID.BOOL);
+												obj.sysInfo = resp.perfInfo;
+											}
 											
 											out.writeObject(obj);
 											out.flush();
@@ -252,7 +261,13 @@ public class ImgRetrievalService
 						} 
 						catch ( Exception e) //IOException | ClassNotFoundException
 						{
-							sc.close();
+							try {
+								sc.close();
+							} catch (IOException e1) 
+							{
+								e1.printStackTrace();
+							}
+							
 							removeSocket(sc);
 
 							continue;
@@ -419,6 +434,25 @@ public class ImgRetrievalService
 			sendMsg(msg.imgServIndex, msg);
 		}
 	}
+	
+	public void getSysPerfInfo(int serverIndex, ObjectOutputStream out, Socket soc) throws IOException
+	{
+		java.util.Random ran = new java.util.Random();
+		ImgServMsg msg = new ImgServMsg(ImgServMsg.MsgType.SYS_PERF_INFO);
+		msg.imgServIndex = serverIndex;
+		msg.msgId = ran.nextInt();
+		
+		ReqInfo info = new ReqInfo();
+		info.out = out;
+		info.time = new Date();
+		info.soc = soc;
+		
+		synchronized(this)
+		{	
+			pendingMsg.put(msg.msgId, info);
+			sendMsg(msg.imgServIndex, msg);
+		}
+	}
 
 	public void getTuningInfoRequest(int serverIndex, int domId, ObjectOutputStream out, Socket soc) throws IOException
 	{
@@ -557,9 +591,9 @@ public class ImgRetrievalService
 					//merge the result
 					ArrayList<ArrayList<ImgDisResEntry>> res = imgRetreivalRes.get(nId).res;
 					int k = imgRetreivalRes.get(nId).k;
-					ArrayList<Long> imgResId = new ArrayList<Long>();
+					ArrayList<ImgDisResEntry> imgDisRes = new ArrayList<ImgDisResEntry>();
 						
-					while (imgResId.size() < k)
+					while (imgDisRes.size() < k)
 					{
 						int s = -1;
 						for (int j = 0; j < res.size(); j++)
@@ -573,7 +607,7 @@ public class ImgRetrievalService
 							
 						if (s < 0) break;
 							
-						imgResId.add(res.get(s).get(0).imgId);
+						imgDisRes.add(res.get(s).get(0));
 						res.get(s).remove(0);
 					}
 					
@@ -584,8 +618,8 @@ public class ImgRetrievalService
 						try 
 						{
 							MessageObject obj = new MessageObject();
-							obj.longlist = imgResId;
-							obj.setrettype(RetID.LONG_LIST);
+							obj.imgDisList = imgDisRes;
+							obj.setrettype(RetID.IMG_DIS_LIST);
 							out.writeObject(obj);
 							out.flush();
 						} 

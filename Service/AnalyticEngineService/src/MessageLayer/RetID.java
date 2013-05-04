@@ -17,4 +17,5 @@ public enum RetID {
       DOUBLE,      // Double
       MOD_INFO,
       CLS_RES,
+      IMG_DIS_LIST,
 }

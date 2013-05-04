@@ -162,7 +162,7 @@ public class ModelManager {
 		synchronized(this)
 		{
 			if (!m_domainTuning.containsKey(nDomainId))
-				return "Error, no tuning process activated for this model";
+				return "Tuning is finished or no tuning process is activated for this model ...";
 			
 			return m_domainTuning.get(nDomainId).getModel().getTuningInfo();
 		}

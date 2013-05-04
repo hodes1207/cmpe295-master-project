@@ -14,6 +14,7 @@ public class ImgServMsg implements Serializable
 		GET_MODEL_ACCURACY, //get the accuracy of a specific model
 	    GET_MODEL_TUNINGINFO, // get the tuning information of a specific model
 	    GET_MODEL_TRAININGINFO, // if the training is in progress for a specific model
+	    SYS_PERF_INFO,
 	}
 	
 	public ImgServMsg(MsgType type) { msgType = type; }

@@ -2,71 +2,71 @@
 <DatabaseImport classDBName="classInfo" domainDBName = "domainInfo" medicalImageDBName = "medicalImage" DBUrl="http://localhost:5984">
 
 	<domain name="head">
-            	<class name="Train01">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train01</class>
-	      	<class name="Train02">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train02</class>
-		<class name="Train03">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train03</class>
-		<class name="Train24">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train24</class>
-		<class name="Train25">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train25</class>
-		<class name="Train26">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train26</class>
-		<class name="Train44">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train44</class>
-		<class name="Train45">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train45</class>
-		<class name="Train46">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train46</class>
+        <class name="Front Skull">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train01</class>
+	    <class name="Upper Front Skull">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train02</class>
+		<class name="Lower Front Skull">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train03</class>
+		<class name="Part R">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train24</class>
+		<class name="Side Skull">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train25</class>
+		<class name="Cervical Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train26</class>
+		<class name="Skeleton Buccale">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train44</class>
+		<class name="Brain Box">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train45</class>
+		<class name="Side Cervical Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train46</class>
 	</domain>
 
 	<domain name="body">
-              	<class name="Train04">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train04</class>
-		<class name="Train05">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train05</class>
-	      	<class name="Train14">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train14</class>
-		<class name="Train15">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train15</class>
-		<class name="Train16">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train16</class>
-		<class name="Train17">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train17</class>
-		<class name="Train27">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train27</class>
-		<class name="Train28">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train28</class>
-		<class name="Train39">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train39</class>
-		<class name="Train40">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train40</class>
+              	<class name="Vague Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train04</class>
+		<class name="Clear Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train05</class>
+	      	<class name="Cyrtosis">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train14</class>
+		<class name="Lower Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train15</class>
+		<class name="Os Costale">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train16</class>
+		<class name="Pelvis">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train17</class>
+		<class name="Side Thorax">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train27</class>
+		<class name="Side Vertebrae">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train28</class>
+		<class name="Femur">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train39</class>
+		<class name="Hip Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train40</class>
 	</domain>
 
 	<domain name="upper limb">
-		<class name="Train06">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train06</class>
-		<class name="Train07">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train07</class>
-		<class name="Train08">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train08</class>
-		<class name="Train09">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train09</class>
-		<class name="Train10">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train10</class>
-		<class name="Train11">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train11</class>
-		<class name="Train29">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train29</class>
-		<class name="Train30">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train30</class>
-		<class name="Train31">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train31</class>
-		<class name="Train32">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train32</class>
-		<class name="Train33">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train33</class>
-		<class name="Train47">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train47</class>
+		<class name="Palm">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train06</class>
+		<class name="Carpus">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train07</class>
+		<class name="Forearm">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train08</class>
+		<class name="Elbow Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train09</class>
+		<class name="Humerus">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train10</class>
+		<class name="Scapula">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train11</class>
+		<class name="Maniphalanx">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train29</class>
+		<class name="Side Carpus">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train30</class>
+		<class name="Side Forearm">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train31</class>
+		<class name="Side Elbow Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train32</class>
+		<class name="Angled Scapula">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train33</class>
+		<class name="Palm with Gesture">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train47</class>
 	</domain>
 
 	<domain name="lower limb">
-		<class name="Train18">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train18</class>
-		<class name="Train19">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train19</class>
-		<class name="Train20">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train20</class>
-		<class name="Train21">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train21</class>
-		<class name="Train22">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train22</class>
-		<class name="Train23">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train23</class>
-		<class name="Train35">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train35</class>
-		<class name="Train36">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train36</class>
-		<class name="Train37">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train37</class>
-		<class name="Train38">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train38</class>
-		<class name="Train50">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train50</class>
-		<class name="Train56">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train56</class>
+		<class name="Phalanx of Toe">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train18</class>
+		<class name="Ankle Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train19</class>
+		<class name="Shin">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train20</class>
+		<class name="Knee Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train21</class>
+		<class name="Femur">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train22</class>
+		<class name="Hipbone">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train23</class>
+		<class name="Side Foot Bone">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train35</class>
+		<class name="Side Ankle Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train36</class>
+		<class name="Side Shin">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train37</class>
+		<class name="Side Knee Joint">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train38</class>
+		<class name="Foot Bone">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train50</class>
+		<class name="Femur and Hipbone">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train56</class>
 	</domain>
 
 	<domain name="chest">
-		<class name="Train12">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train12</class>
-		<class name="Train13">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train13</class>
-		<class name="Train34">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train34</class>
+		<class name="Costa">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train12</class>
+		<class name="Costa on One Side">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train13</class>
+		<class name="Side Costa">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train34</class>
 	</domain>
 
 	<domain name="breast">
-		<class name="Train41">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train41</class>
-		<class name="Train42">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train42</class>
-		<class name="Train48">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train48</class>
-		<class name="Train49">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train49</class>
+		<class name="Left Side Breast I">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train41</class>
+		<class name="Right Side Breast I">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train42</class>
+		<class name="Left Side Breast II">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train48</class>
+		<class name="Right Side Breast II">C:\Users\yhx176781066\Desktop\Master Project\images\IRMA\2005\Train49</class>
 	</domain>
 
 </DatabaseImport>
